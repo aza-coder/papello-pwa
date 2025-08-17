@@ -72,5 +72,13 @@
     }
     loadProducts();
   </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      // Для GitHub Pages с репо-путём укажи префикс: navigator.serviceWorker.register('/repo-name/sw.js')
+      navigator.serviceWorker.register('/sw.js').catch(console.error);
+    });
+  }
+</script>  
 </body>
 </html>
