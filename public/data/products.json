@@ -1,0 +1,10 @@
+[
+  {
+    "id": "happy-birthday-balloons",
+    "title": "Happy Birthday Balloons",
+    "price": 2.99,
+    "imageUrl": "/assets/cards/birthday/happy-birthday-balloons__2.99.jpg",
+    "aspectRatio": "2:3",
+    "tags": ["birthday"]
+  }
+]
