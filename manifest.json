@@ -3,8 +3,8 @@
   "short_name": "Papello",
   "version": "1.0.0",
   "description": "Progressive Web App for digital greeting cards",
-  "start_url": ".",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#2A3D66",
@@ -14,49 +14,49 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "/assets/icons/logo-16.png",
+      "src": "./assets/icons/logo-16.png",
       "sizes": "16x16",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/logo-32.png",
+      "src": "./assets/icons/logo-32.png",
       "sizes": "32x32",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/logo-144.png",
+      "src": "./assets/icons/logo-144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/logo-152.png",
+      "src": "./assets/icons/logo-152.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/logo-167.png",
+      "src": "./assets/icons/logo-167.png",
       "sizes": "167x167",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/logo-180.png",
+      "src": "./assets/icons/logo-180.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/logo-192.png",
+      "src": "./assets/icons/logo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/icons/logo-512.png",
+      "src": "./assets/icons/logo-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -81,10 +81,10 @@
       "name": "Favorites",
       "short_name": "Favorites",
       "description": "View your favorite cards",
-      "url": "/#/likes",
+      "url": "./#/likes",
       "icons": [
         {
-          "src": "/assets/icons/heart.svg",
+          "src": "./assets/icons/heart.svg",
           "sizes": "96x96"
         }
       ]

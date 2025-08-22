@@ -5,21 +5,21 @@ const RUNTIME_CACHE = `runtime-${VERSION}`;
 
 /** Что положим в shell-кеш (минимум) */
 const SHELL_ASSETS = [
-  '/index.html',
-  '/manifest.json',
-  '/assets/brand/logo.svg',
-  '/assets/icons/home.svg',
-  '/assets/icons/heart.svg',
-  '/assets/icons/grid.svg',
-  '/assets/icons/logo-16.png',
-  '/assets/icons/logo-32.png',
-  '/assets/icons/logo-144.png',
-  '/assets/icons/logo-152.png',
-  '/assets/icons/logo-167.png',
-  '/assets/icons/logo-180.png',
-  '/assets/icons/logo-192.png',
-  '/assets/icons/logo-512.png',
-  '/assets/icons/download.svg'
+  './index.html',
+  './manifest.json',
+  './assets/brand/logo.svg',
+  './assets/icons/home.svg',
+  './assets/icons/heart.svg',
+  './assets/icons/grid.svg',
+  './assets/icons/logo-16.png',
+  './assets/icons/logo-32.png',
+  './assets/icons/logo-144.png',
+  './assets/icons/logo-152.png',
+  './assets/icons/logo-167.png',
+  './assets/icons/logo-180.png',
+  './assets/icons/logo-192.png',
+  './assets/icons/logo-512.png',
+  './assets/icons/download.svg'
 ];
 
 /** Установка: кэшируем shell */
@@ -100,21 +100,21 @@ self.addEventListener('fetch', (event) => {
 
   // Shell assets — Cache First (HTML, manifest, icons, logo)
   if (request.mode === 'navigate' || 
-      url.pathname === '/manifest.json' ||
-      url.pathname.startsWith('/assets/brand/') ||
-      url.pathname.startsWith('/assets/icons/')) {
+      url.pathname === '/papello-pwa/manifest.json' ||
+      url.pathname.startsWith('/papello-pwa/assets/brand/') ||
+      url.pathname.startsWith('/papello-pwa/assets/icons/')) {
     event.respondWith(cacheFirst(request));
     return;
   }
 
   // JSON data — Network First with cache fallback
-  if (url.pathname.startsWith('/data/') && url.pathname.endsWith('.json')) {
+  if (url.pathname.startsWith('/papello-pwa/data/') && url.pathname.endsWith('.json')) {
     event.respondWith(networkFirst(request));
     return;
   }
 
   // Product images — Stale While Revalidate
-  if (request.destination === 'image' && url.pathname.startsWith('/assets/cards/')) {
+  if (request.destination === 'image' && url.pathname.startsWith('/papello-pwa/assets/cards/')) {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }

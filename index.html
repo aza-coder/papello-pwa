@@ -6,7 +6,7 @@
   <title>Papello</title>
 
   <!-- PWA manifest -->
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#2A3D66" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -15,17 +15,17 @@
   <meta name="application-name" content="Papello" />
 
   <!-- Platform-specific icons -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/logo-32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/logo-16.png" />
-  <link rel="apple-touch-icon" href="/assets/icons/logo-180.png" />
-  <link rel="apple-touch-icon" sizes="152x152" href="/assets/icons/logo-152.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/logo-180.png" />
-  <link rel="apple-touch-icon" sizes="167x167" href="/assets/icons/logo-167.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/logo-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/icons/logo-16.png" />
+  <link rel="apple-touch-icon" href="./assets/icons/logo-180.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="./assets/icons/logo-152.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/icons/logo-180.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="./assets/icons/logo-167.png" />
 
   <!-- Orientation and platform restrictions -->
   <meta name="supported-orientations" content="portrait" />
   <meta name="msapplication-TileColor" content="#2A3D66" />
-  <meta name="msapplication-TileImage" content="/assets/icons/logo-144.png" />
+  <meta name="msapplication-TileImage" content="./assets/icons/logo-144.png" />
 
   <!-- Security and compatibility -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -688,7 +688,7 @@
   </div>
   <section class="hero screen is-active" id="screen-home">
     <div class="brand-row">
-      <img src="/assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <img src="./assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
       <div class="brand-name">Papéllo</div>
     </div>
     <div class="carousel" id="favoritesCarousel" role="region" aria-roledescription="carousel" aria-label="Избранные открытки" tabindex="0">
@@ -702,7 +702,7 @@
   </section>
   <section class="screen" id="screen-likes">
     <div class="brand-row">
-      <img src="/assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <img src="./assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
       <div class="brand-name">Papéllo</div>
     </div>
 
@@ -733,7 +733,7 @@
   </section>
   <section class="screen" id="screen-all">
     <div class="brand-row">
-      <img src="/assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <img src="./assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
       <div class="brand-name">Papéllo</div>
     </div>
 
@@ -775,7 +775,7 @@
 
   <!-- Install App Button -->
   <button id="installAppBtn" class="install-btn" aria-label="Install app" style="display: none;">
-    <img src="/assets/icons/download.svg" alt="" aria-hidden="true" />
+    <img src="./assets/icons/download.svg" alt="" aria-hidden="true" />
     <span>Install app</span>
   </button>
 
@@ -807,13 +807,13 @@
 
   <nav class="bottombar" role="navigation" aria-label="Основная навигация">
     <button id="nav-home" aria-label="Домой" data-route="#/home">
-      <img src="/assets/icons/home.svg" alt="" aria-hidden="true" />
+      <img src="./assets/icons/home.svg" alt="" aria-hidden="true" />
     </button>
     <button id="nav-likes" aria-label="Избранное" data-route="#/likes">
-      <img src="/assets/icons/heart.svg" alt="" aria-hidden="true" />
+      <img src="./assets/icons/heart.svg" alt="" aria-hidden="true" />
     </button>
     <button id="nav-all" aria-label="Все открытки" data-route="#/all">
-      <img src="/assets/icons/grid.svg" alt="" aria-hidden="true" />
+      <img src="./assets/icons/grid.svg" alt="" aria-hidden="true" />
     </button>
   </nav>
 
@@ -824,7 +824,7 @@
   <script>
     async function loadProducts() {
       try {
-        const res = await fetch('/data/products.json');
+        const res = await fetch('./data/products.json');
         const products = await res.json();
 
         const container = document.getElementById('products');
@@ -868,12 +868,12 @@
     function injectPreloaderLogo() {
       const logoHost = document.getElementById('preloader-logo');
       if (!logoHost) return;
-      fetch('/assets/brand/logo.svg')
+      fetch('./assets/brand/logo.svg')
         .then(r => r.ok ? r.text() : Promise.reject())
         .then(svg => { logoHost.innerHTML = svg; })
         .catch(() => {
           const img = new Image();
-          img.src = '/assets/brand/logo.svg';
+          img.src = './assets/brand/logo.svg';
           img.alt = 'Papéllo';
           logoHost.appendChild(img);
         });
@@ -1144,7 +1144,7 @@
 
     async function loadFavorites() {
       try {
-        const res = await fetch('/data/favorites.json');
+        const res = await fetch('./data/favorites.json');
         const data = await res.json();
         slidesData = (Array.isArray(data) ? data : (data?.items || [])).slice(0, MAX_SLIDES);
         viewport.innerHTML = '';
@@ -1371,7 +1371,7 @@
       if (allProducts.length > 0) return allProducts;
 
       try {
-        const res = await fetch('/data/products.json');
+        const res = await fetch('./data/products.json');
         const data = await res.json();
         allProducts = Array.isArray(data) ? data : (data?.items || []);
         console.log('Loaded products for likes:', allProducts.length);
@@ -1617,7 +1617,7 @@
       if (allCardsData.length > 0) return allCardsData;
 
       try {
-        const res = await fetch('/data/products.json');
+        const res = await fetch('./data/products.json');
         const data = await res.json();
         allCardsData = Array.isArray(data) ? data : (data?.items || []);
         console.log('Loaded all products data:', allCardsData.length);
@@ -1926,8 +1926,8 @@
     // Service Worker registration with platform detection
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        // Для GitHub Pages с репо-путём укажи префикс: navigator.serviceWorker.register('/repo-name/sw.js')
-        navigator.serviceWorker.register('/sw.js')
+        // Для GitHub Pages с репо-путём укажи префикс: navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
           .then(registration => {
             console.log('Service Worker registered successfully:', registration);
             
