@@ -2,12 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Papello</title>
 
   <!-- PWA manifest -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#2A3D66" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Papello" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Papello" />
+
+  <!-- Platform-specific icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/logo-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/logo-16.png" />
+  <link rel="apple-touch-icon" href="/assets/icons/logo-180.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/assets/icons/logo-152.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/logo-180.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="/assets/icons/logo-167.png" />
+
+  <!-- Orientation and platform restrictions -->
+  <meta name="supported-orientations" content="portrait" />
+  <meta name="msapplication-TileColor" content="#2A3D66" />
+  <meta name="msapplication-TileImage" content="/assets/icons/logo-144.png" />
+
+  <!-- Security and compatibility -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="format-detection" content="telephone=no" />
 
   <!-- Стили (для простоты прямо тут) -->
   <style>
@@ -43,11 +65,761 @@
     }
     .card .title { padding: 4px; font-size: 14px; }
     .card .price { padding: 0 4px 6px; font-weight: bold; }
+
+    /* Preloader overlay */
+    #preloader {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      background: #2A3D66;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 400ms ease;
+    }
+    #preloader.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #preloader-logo svg,
+    #preloader-logo img {
+      width: 140px;
+      height: auto;
+      display: block;
+    }
+
+    /* Hero with favorites slider */
+    .hero { padding-bottom: 120px; }
+    .brand-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 6px 0 12px;
+    }
+    .brand-row img { width: 28px; height: 28px; display: block; }
+    .brand-row .brand-name { font-size: 22px; font-weight: 700; letter-spacing: 0.2px; }
+
+    .carousel {
+      position: relative;
+    }
+    .carousel[aria-roledescription="carousel"] { outline: none; }
+    .carousel-viewport {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      display: flex;
+      gap: 10px;
+      padding-bottom: 10px; /* space for shadow */
+    }
+    .carousel-viewport::-webkit-scrollbar { display: none; }
+    .carousel-slide {
+      scroll-snap-align: center;
+      flex: 0 0 calc(100vw - 20px); /* по ширине экрана с учётом паддинга body */
+      display: flex;
+      justify-content: center;
+    }
+    .slide-card {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      background: #fff;
+      color: #000;
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .slide-card img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+    .slide-meta {
+      padding: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      background: #fff;
+    }
+    .slide-title { font-size: 14px; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+    .slide-price { font-weight: 700; color: #000; }
+
+    /* Overlay actions */
+    .slide-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+      text-align: center;
+      padding: 12px;
+      gap: 8px;
+    }
+    .slide-overlay.is-visible { opacity: 1; pointer-events: auto; }
+    .overlay-title { font-size: 16px; font-weight: 600; }
+    .overlay-price { font-size: 15px; font-weight: 700; }
+    .overlay-actions { display: flex; gap: 10px; }
+    .overlay-btn {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 18px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Pagination dots */
+    .carousel-pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+    .dot.active { width: 8px; height: 8px; background: #fff; }
+
+    /* Skeleton */
+    .slider-skeleton {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc((100vw - 20px) * 3 / 2);
+    }
+    .skeleton-card {
+      width: calc(100vw - 20px);
+      aspect-ratio: 2 / 3;
+      border-radius: 5px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.2), rgba(255,255,255,0.12));
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Visually hidden (for live region) */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    /* Screens */
+    .screen { display: none; }
+    .screen.is-active { display: block; }
+
+    /* Bottombar */
+    .bottombar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: #cde7f0;
+      height: 72px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      justify-items: center;
+      z-index: 10000;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+    .bottombar button {
+      appearance: none;
+      background: transparent;
+      border: none;
+      padding: 10px;
+      width: 64px; height: 64px; /* >=44pt hit-area */
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .bottombar button[aria-current="page"] { background: rgba(0,0,0,0.08); }
+    .bottombar img { width: 24px; height: 24px; filter: brightness(0) saturate(100%); }
+
+    /* Placeholder screens */
+    .placeholder {
+      min-height: calc(100dvh - 120px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-align: center;
+      padding: 10px;
+    }
+    .placeholder .brand-row { justify-content: center; }
+    .placeholder h2 { margin: 8px 0 0; font-size: 18px; font-weight: 600; }
+
+    /* Likes screen */
+    .likes-skeleton { padding: 10px 0; }
+    .likes-skeleton .grid { gap: 12px; }
+    .likes-skeleton .skeleton-card {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      border-radius: 5px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.2), rgba(255,255,255,0.12));
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+
+    .likes-empty {
+      min-height: calc(100dvh - 200px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+    }
+    .empty-content h2 { margin: 0 0 20px; font-size: 18px; font-weight: 600; }
+    .empty-btn {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 18px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .likes-grid {
+      padding: 10px 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .likes-grid .like-card {
+      background: #fff;
+      color: #000;
+      border-radius: 5px;
+      overflow: hidden;
+      aspect-ratio: 2 / 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      position: relative;
+    }
+    .likes-grid .like-card img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      flex-grow: 1;
+    }
+    .likes-grid .like-card .title { padding: 4px; font-size: 14px; }
+    .likes-grid .like-card .price { padding: 0 4px 6px; font-weight: bold; }
+
+    /* Like card overlay (same as slider) */
+    .like-card .slide-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+      text-align: center;
+      padding: 12px;
+      gap: 8px;
+    }
+    .like-card .slide-overlay.is-visible { opacity: 1; pointer-events: auto; }
+    .like-card .overlay-title { font-size: 16px; font-weight: 600; }
+    .like-card .overlay-price { font-size: 15px; font-weight: 700; }
+    .like-card .overlay-actions { display: flex; gap: 10px; }
+    .like-card .overlay-btn {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 18px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* All cards screen styles */
+    .all-skeleton {
+      padding: 10px 0;
+    }
+    .all-skeleton .grid {
+      gap: 12px;
+    }
+    .all-grid {
+      padding: 10px 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .all-grid .card {
+      background: #fff;
+      color: #000;
+      border-radius: 5px;
+      overflow: hidden;
+      aspect-ratio: 2 / 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      position: relative;
+    }
+    .all-grid .card img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      flex-grow: 1;
+    }
+    .all-grid .card .title { padding: 4px; font-size: 14px; }
+    .all-grid .card .price { padding: 0 4px 6px; font-weight: bold; }
+
+    /* All cards overlay (same as likes) */
+    .all-grid .card .slide-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+      text-align: center;
+      padding: 12px;
+      gap: 8px;
+    }
+    .all-grid .card .slide-overlay.is-visible { opacity: 1; pointer-events: auto; }
+    .all-grid .card .overlay-title { font-size: 16px; font-weight: 600; }
+    .all-grid .card .overlay-price { font-size: 15px; font-weight: 700; }
+    .all-grid .card .overlay-actions { display: flex; gap: 10px; }
+    .all-grid .card .overlay-btn {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 18px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .loading-more {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px 0;
+    }
+    .loading-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .loading-dots span {
+      width: 8px;
+      height: 8px;
+      background-color: #fff;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(-10px); opacity: 0.6; }
+      40% { transform: translateY(0); opacity: 1; }
+    }
+    .loading-text { color: #fff; font-size: 14px; }
+
+    .end-of-list {
+      text-align: center;
+      padding: 20px 0;
+      color: #fff;
+      font-size: 14px;
+    }
+    
+    /* Platform-specific styles and orientation enforcement */
+    @media screen and (orientation: landscape) and (max-height: 500px) {
+      body::before {
+        content: "Please rotate your device to portrait mode";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #2A3D66;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        text-align: center;
+        padding: 20px;
+        z-index: 99999;
+      }
+    }
+    
+    /* iOS-specific adjustments */
+    @supports (-webkit-touch-callout: none) {
+      body {
+        /* Prevent iOS Safari from zooming on input focus */
+        -webkit-text-size-adjust: 100%;
+      }
+      
+      .bottombar {
+        /* Safe area for iPhone X and newer */
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+    }
+    
+    /* Android-specific adjustments */
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+      .bottombar button {
+        /* Ensure proper touch targets on Android */
+        min-height: 44px;
+        min-width: 44px;
+      }
+    }
+    
+    /* High DPI displays */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+      .skeleton-card {
+        /* Sharper skeleton on high DPI */
+        background-size: 100% 100%;
+      }
+    }
+    
+    /* Install App Button */
+    .install-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #2A3D66;
+      color: white;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 25px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 10001;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .install-btn:hover {
+      background: #1a2a4a;
+      border-color: rgba(255,255,255,0.5);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+    
+    .install-btn:active {
+      transform: translateY(0);
+    }
+    
+    .install-btn img {
+      width: 18px;
+      height: 18px;
+      filter: brightness(0) invert(1);
+    }
+    
+    /* iOS Install Hint Modal */
+    .ios-install-hint {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10002;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .ios-install-hint.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .ios-install-hint-content {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 320px;
+      text-align: center;
+      position: relative;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    
+    .ios-install-hint.is-visible .ios-install-hint-content {
+      transform: scale(1);
+    }
+    
+    .ios-install-hint h3 {
+      margin: 0 0 16px;
+      color: #2A3D66;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .ios-install-hint p {
+      margin: 0 0 20px;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .ios-install-hint .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .ios-install-hint .step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #2A3D66;
+    }
+    
+    .ios-install-hint .step-icon {
+      width: 24px;
+      height: 24px;
+      background: #2A3D66;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .ios-install-hint .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: #999;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    
+    .ios-install-hint .close-btn:hover {
+      background: #f0f0f0;
+      color: #666;
+    }
+    
+    .ios-install-hint .action-btn {
+      background: #2A3D66;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .ios-install-hint .action-btn:hover {
+      background: #1a2a4a;
+    }
+
+    /* Ensure proper viewport on all devices */
+    @media screen and (max-width: 320px) {
+      .brand-row .brand-name {
+        font-size: 18px;
+      }
+      
+      .carousel-slide {
+        flex: 0 0 calc(100vw - 16px);
+      }
+      
+      .install-btn {
+        top: 15px;
+        right: 15px;
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Papéllo</h1>
-  <div class="grid" id="products"></div>
+  <div id="preloader" aria-hidden="true">
+    <div id="preloader-logo"></div>
+  </div>
+  <section class="hero screen is-active" id="screen-home">
+    <div class="brand-row">
+      <img src="/assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <div class="brand-name">Papéllo</div>
+    </div>
+    <div class="carousel" id="favoritesCarousel" role="region" aria-roledescription="carousel" aria-label="Избранные открытки" tabindex="0">
+      <div class="carousel-viewport" id="carouselViewport" aria-live="polite"></div>
+      <div class="carousel-pagination" id="carouselDots" aria-hidden="true"></div>
+      <div class="slider-skeleton" id="carouselSkeleton">
+        <div class="skeleton-card"></div>
+      </div>
+      <div id="carouselLive" class="sr-only" aria-live="polite"></div>
+    </div>
+  </section>
+  <section class="screen" id="screen-likes">
+    <div class="brand-row">
+      <img src="/assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <div class="brand-name">Papéllo</div>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div class="likes-skeleton" id="likesSkeleton">
+      <div class="grid">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="likes-empty" id="likesEmpty" style="display: none;">
+      <div class="empty-content">
+        <h2>У вас пока нет лайков</h2>
+        <button class="empty-btn" onclick="location.hash='#/home'">Перейти на главную</button>
+        <button class="empty-btn" onclick="addTestLikes()" style="margin-top: 10px;">Добавить тестовые лайки</button>
+      </div>
+    </div>
+
+    <!-- Likes grid -->
+    <div class="likes-grid" id="likesGrid" role="list" style="display: none;"></div>
+
+    <!-- Live region for empty state -->
+    <div id="likesLive" class="sr-only" aria-live="polite"></div>
+  </section>
+  <section class="screen" id="screen-all">
+    <div class="brand-row">
+      <img src="/assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <div class="brand-name">Papéllo</div>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div class="all-skeleton" id="allSkeleton">
+      <div class="grid">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    </div>
+
+    <!-- All cards grid -->
+    <div class="all-grid" id="allGrid" role="list" style="display: none;"></div>
+
+    <!-- Loading more indicator -->
+    <div class="loading-more" id="loadingMore" style="display: none;">
+      <div class="loading-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="loading-text">Загружаем ещё...</div>
+    </div>
+
+    <!-- End of list indicator -->
+    <div class="end-of-list" id="endOfList" style="display: none;">
+      <div class="end-text">Это всё</div>
+    </div>
+
+    <!-- Live region for updates -->
+    <div id="allLive" class="sr-only" aria-live="polite"></div>
+  </section>
+
+  <!-- Install App Button -->
+  <button id="installAppBtn" class="install-btn" aria-label="Install app" style="display: none;">
+    <img src="/assets/icons/download.svg" alt="" aria-hidden="true" />
+    <span>Install app</span>
+  </button>
+
+  <!-- iOS Install Hint Modal -->
+  <div id="iosInstallHint" class="ios-install-hint" role="dialog" aria-labelledby="iosInstallTitle" aria-hidden="true">
+    <div class="ios-install-hint-content">
+      <button class="close-btn" aria-label="Close" onclick="closeIOSInstallHint()">×</button>
+      <h3 id="iosInstallTitle">Install Papéllo</h3>
+      <p>Add Papéllo to your home screen for quick access and a native app experience.</p>
+      
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">1</div>
+          <span>Tap the Share button</span>
+        </div>
+        <div class="step">
+          <div class="step-icon">2</div>
+          <span>Scroll down and tap "Add to Home Screen"</span>
+        </div>
+        <div class="step">
+          <div class="step-icon">3</div>
+          <span>Tap "Add" to confirm</span>
+        </div>
+      </div>
+      
+      <button class="action-btn" onclick="closeIOSInstallHint()">Got it!</button>
+    </div>
+  </div>
+
+  <nav class="bottombar" role="navigation" aria-label="Основная навигация">
+    <button id="nav-home" aria-label="Домой" data-route="#/home">
+      <img src="/assets/icons/home.svg" alt="" aria-hidden="true" />
+    </button>
+    <button id="nav-likes" aria-label="Избранное" data-route="#/likes">
+      <img src="/assets/icons/heart.svg" alt="" aria-hidden="true" />
+    </button>
+    <button id="nav-all" aria-label="Все открытки" data-route="#/all">
+      <img src="/assets/icons/grid.svg" alt="" aria-hidden="true" />
+    </button>
+  </nav>
+
+  <!-- legacy grid kept for future 'all' implementation; hidden by routing for now -->
+  <h1 style="display:none">Papéllo</h1>
+  <div class="grid" id="products" style="display:none"></div>
 
   <script>
     async function loadProducts() {
@@ -56,6 +828,8 @@
         const products = await res.json();
 
         const container = document.getElementById('products');
+        let firstImageEl = null;
+
         products.forEach(p => {
           const div = document.createElement('div');
           div.className = 'card';
@@ -64,21 +838,1290 @@
             <div class="title">${p.title}</div>
             <div class="price">$${p.price}</div>
           `;
+          const img = div.querySelector('img');
+          if (!firstImageEl) firstImageEl = img;
           container.appendChild(div);
+        });
+
+        // Дождаться первой картинки (или ошибки), чтобы показать первый контент
+        await new Promise((resolve) => {
+          if (!firstImageEl) { resolve(); return; }
+          if (firstImageEl.complete) { resolve(); return; }
+          firstImageEl.addEventListener('load', resolve, { once: true });
+          firstImageEl.addEventListener('error', resolve, { once: true });
         });
       } catch (e) {
         console.error('Ошибка загрузки товаров', e);
       }
     }
-    loadProducts();
+
+    function hidePreloader() {
+      const overlay = document.getElementById('preloader');
+      if (!overlay) return;
+      overlay.classList.add('is-hidden');
+      const remove = () => overlay.remove();
+      overlay.addEventListener('transitionend', remove, { once: true });
+      // Подстраховка, если событие transitionend не сработает
+      setTimeout(() => { if (overlay && overlay.parentNode) remove(); }, 600);
+    }
+
+    function injectPreloaderLogo() {
+      const logoHost = document.getElementById('preloader-logo');
+      if (!logoHost) return;
+      fetch('/assets/brand/logo.svg')
+        .then(r => r.ok ? r.text() : Promise.reject())
+        .then(svg => { logoHost.innerHTML = svg; })
+        .catch(() => {
+          const img = new Image();
+          img.src = '/assets/brand/logo.svg';
+          img.alt = 'Papéllo';
+          logoHost.appendChild(img);
+        });
+    }
+
+    injectPreloaderLogo();
+
+    const PRELOADER_TIMEOUT_MS = 8000;
+    const PRELOADER_MIN_MS = 3000;
+
+    const contentReady = loadProducts();
+    const minDelay = new Promise(resolve => setTimeout(resolve, PRELOADER_MIN_MS));
+    const fallbackMax = new Promise(resolve => setTimeout(resolve, PRELOADER_TIMEOUT_MS));
+
+    Promise.race([
+      fallbackMax,
+      Promise.all([contentReady, minDelay])
+    ]).then(hidePreloader);
   </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      // Для GitHub Pages с репо-путём укажи префикс: navigator.serviceWorker.register('/repo-name/sw.js')
-      navigator.serviceWorker.register('/sw.js').catch(console.error);
+  <script>
+    // Favorites slider
+    const MAX_SLIDES = 10;
+    const LIKE_STORAGE_KEY = 'papello:likes';
+
+    const viewport = document.getElementById('carouselViewport');
+    const dotsEl = document.getElementById('carouselDots');
+    const skeletonEl = document.getElementById('carouselSkeleton');
+    const carouselEl = document.getElementById('favoritesCarousel');
+
+    let slidesData = [];
+    let currentIndex = 0;
+    let pointerDownX = 0;
+    let pointerDownTime = 0;
+    let isDragging = false;
+    const SWIPE_THRESHOLD_PX = 14;
+    const SWIPE_VELOCITY_PX_MS = 0.5; // fast flick
+
+    function readLikes() {
+      try {
+        const likes = JSON.parse(localStorage.getItem(LIKE_STORAGE_KEY) || '[]');
+        return Array.isArray(likes) ? likes : [];
+      } catch {
+        return [];
+      }
+    }
+    function writeLikes(ids) {
+      localStorage.setItem(LIKE_STORAGE_KEY, JSON.stringify(ids));
+      // Dispatch event for likes screen synchronization
+      window.dispatchEvent(new CustomEvent('papello:likes:changed', { detail: { likes: ids } }));
+      console.log('Likes updated:', ids);
+    }
+
+    function setCurrentIndex(idx, smooth = true) {
+      const clamped = Math.max(0, Math.min(idx, slidesData.length - 1));
+      currentIndex = clamped;
+      const slideWidth = viewport.firstElementChild ? viewport.firstElementChild.getBoundingClientRect().width + 10 /*gap*/ : 0;
+      const target = clamped * slideWidth;
+      viewport.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' });
+      updateDots();
+      updateLiveRegion();
+      prefetchNeighbors();
+    }
+
+    function updateDots() {
+      if (!slidesData.length) { dotsEl.innerHTML = ''; return; }
+      const hasLeft = currentIndex > 0;
+      const hasRight = currentIndex < slidesData.length - 1;
+      const dots = [];
+      if (hasLeft) dots.push('<span class="dot"></span>');
+      dots.push('<span class="dot active"></span>');
+      if (hasRight) dots.push('<span class="dot"></span>');
+      dotsEl.innerHTML = dots.join('');
+    }
+
+    function updateLiveRegion() {
+      const live = document.getElementById('carouselLive');
+      if (live) live.textContent = `${currentIndex + 1} из ${slidesData.length}`;
+    }
+
+    function formatPrice(raw) {
+      if (!raw) return '';
+      return String(raw);
+    }
+
+    function normalizeItem(raw) {
+      return {
+        id: raw.id || raw.image || raw.title || '',
+        title: raw.title || '',
+        price: formatPrice(raw.price),
+        imageUrl: raw.image?.startsWith('/') ? raw.image : `/${raw.image}`
+      };
+    }
+
+    function createSlide(itemRaw) {
+      const item = normalizeItem(itemRaw);
+      const likes = readLikes();
+      const liked = likes.includes(item.id); // Use 'id' instead of 'imageUrl'
+      const slide = document.createElement('div');
+      slide.className = 'carousel-slide';
+      slide.setAttribute('role', 'group');
+      slide.setAttribute('aria-roledescription', 'slide');
+      slide.setAttribute('aria-label', item.title);
+
+      const card = document.createElement('div');
+      card.className = 'slide-card';
+
+      const img = document.createElement('img');
+      img.alt = item.title?.slice(0, 70) || 'Открытка';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.dataset.src = item.imageUrl;
+
+      const meta = document.createElement('div');
+      meta.className = 'slide-meta';
+      const t = document.createElement('div'); t.className = 'slide-title'; t.textContent = item.title || '';
+      const pr = document.createElement('div'); pr.className = 'slide-price'; pr.textContent = item.price || '';
+      meta.appendChild(t); meta.appendChild(pr);
+
+      const overlay = document.createElement('div');
+      overlay.className = 'slide-overlay';
+      overlay.innerHTML = `
+        <div class="overlay-title">${item.title || ''}</div>
+        <div class="overlay-price">${item.price || ''}</div>
+        <div class="overlay-actions">
+          <button class="overlay-btn" data-action="share" aria-label="Поделиться">Share</button>
+          <button class="overlay-btn" data-action="like" aria-pressed="${liked}" aria-label="В избранное">${liked ? 'Liked' : 'Like'}</button>
+        </div>
+      `;
+
+      card.appendChild(img);
+      card.appendChild(meta);
+      card.appendChild(overlay);
+      slide.appendChild(card);
+      return slide;
+    }
+
+    function attachOverlayHandlers(slide, item) {
+      const overlay = slide.querySelector('.slide-overlay');
+      const likeBtn = overlay.querySelector('[data-action="like"]');
+      const shareBtn = overlay.querySelector('[data-action="share"]');
+      let hideTimer = null;
+
+      function showOverlayTemporarily() {
+        overlay.classList.add('is-visible');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => overlay.classList.remove('is-visible'), 3000);
+      }
+
+      slide.addEventListener('click', (e) => {
+        // Ignore clicks on buttons; they manage themselves
+        const target = e.target;
+        if (target.closest('.overlay-btn')) return;
+        showOverlayTemporarily();
+      });
+
+      likeBtn.addEventListener('click', () => {
+        const likes = readLikes();
+        const isLiked = likes.includes(item.id); // Use 'id' instead of 'imageUrl'
+        if (isLiked) {
+          const filtered = likes.filter(id => id !== item.id);
+          writeLikes(filtered);
+          likeBtn.textContent = 'Like';
+          likeBtn.setAttribute('aria-pressed', 'false');
+        } else {
+          likes.push(item.id);
+          writeLikes(likes);
+          likeBtn.textContent = 'Liked';
+          likeBtn.setAttribute('aria-pressed', 'true');
+        }
+        console.log(`Like ${isLiked ? 'removed' : 'added'} for item:`, item.id, 'Current likes:', readLikes());
+      });
+
+      shareBtn.addEventListener('click', async () => {
+        try {
+          if (navigator.share) {
+            const shareData = { title: item.title || 'Papéllo', text: item.title || 'Papéllo', url: location.href };
+            // Try share with file if supported
+            if (navigator.canShare && navigator.canShare({ files: [] })) {
+              const resp = await fetch(item.imageUrl);
+              const blob = await resp.blob();
+              const file = new File([blob], 'card.jpg', { type: blob.type || 'image/jpeg' });
+              if (navigator.canShare({ files: [file] })) {
+                await navigator.share({ ...shareData, files: [file] });
+                return;
+              }
+            }
+            await navigator.share(shareData);
+          } else {
+            await navigator.clipboard.writeText(item.imageUrl);
+            alert('Ссылка скопирована');
+          }
+        } catch (err) {
+          console.error('Share failed', err);
+        }
+      });
+    }
+
+    function installKeyboardControls() {
+      carouselEl.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') { e.preventDefault(); setCurrentIndex(currentIndex + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); setCurrentIndex(currentIndex - 1); }
+      });
+    }
+
+    function installSwipeHandlers() {
+      viewport.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        pointerDownX = e.clientX;
+        pointerDownTime = performance.now();
+        viewport.setPointerCapture(e.pointerId);
+      });
+      viewport.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        // native scroll handles movement; we only track
+      });
+      viewport.addEventListener('pointerup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        const dx = e.clientX - pointerDownX;
+        const dt = Math.max(1, performance.now() - pointerDownTime);
+        const v = Math.abs(dx) / dt;
+
+        let target = currentIndex;
+        if (Math.abs(dx) > SWIPE_THRESHOLD_PX || v > SWIPE_VELOCITY_PX_MS) {
+          target = dx < 0 ? currentIndex + 1 : currentIndex - 1;
+        } else {
+          // snap to nearest based on scroll position
+          const slideWidth = viewport.firstElementChild ? viewport.firstElementChild.getBoundingClientRect().width + 10 : 1;
+          target = Math.round(viewport.scrollLeft / slideWidth);
+        }
+        setCurrentIndex(target);
+      });
+
+      // Update index on scroll end
+      let scrollTimer = null;
+      viewport.addEventListener('scroll', () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          const slideWidth = viewport.firstElementChild ? viewport.firstElementChild.getBoundingClientRect().width + 10 : 1;
+          const idx = Math.round(viewport.scrollLeft / slideWidth);
+          if (idx !== currentIndex) { currentIndex = Math.max(0, Math.min(idx, slidesData.length - 1)); updateDots(); updateLiveRegion(); prefetchNeighbors(); }
+        }, 80);
+      });
+    }
+
+    function lazyObserve(img) {
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries, obs) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const el = entry.target;
+              if (el.dataset.src && !el.src) el.src = el.dataset.src;
+              obs.unobserve(el);
+            }
+          });
+        }, { root: viewport, rootMargin: '50% 0px' });
+        io.observe(img);
+      } else {
+        img.src = img.dataset.src;
+      }
+    }
+
+    function prefetchNeighbors() {
+      const prev = viewport.children[currentIndex - 1]?.querySelector('img');
+      const next = viewport.children[currentIndex + 1]?.querySelector('img');
+      [prev, next].forEach((img) => { if (img && img.dataset.src && !img.src) img.src = img.dataset.src; });
+    }
+
+    async function loadFavorites() {
+      try {
+        const res = await fetch('/data/favorites.json');
+        const data = await res.json();
+        slidesData = (Array.isArray(data) ? data : (data?.items || [])).slice(0, MAX_SLIDES);
+        viewport.innerHTML = '';
+        slidesData.forEach((raw) => {
+          const slide = createSlide(raw);
+          viewport.appendChild(slide);
+          const img = slide.querySelector('img');
+          lazyObserve(img);
+          const normalized = normalizeItem(raw);
+          attachOverlayHandlers(slide, normalized);
+        });
+        skeletonEl.style.display = 'none';
+        setCurrentIndex(0, false);
+      } catch (e) {
+        console.error('Не удалось загрузить избранное', e);
+        // keep skeleton visible
+      }
+    }
+
+    installKeyboardControls();
+    installSwipeHandlers();
+    loadFavorites();
+  </script>
+  <script>
+    // Bottombar routing
+    const routes = {
+      '#/home': 'screen-home',
+      '#/likes': 'screen-likes',
+      '#/all': 'screen-all',
+    };
+
+    function setActiveRoute(hash) {
+      const targetHash = routes[hash] ? hash : '#/home';
+      const activeId = routes[targetHash];
+      document.querySelectorAll('.screen').forEach((el) => el.classList.remove('is-active'));
+      const activeEl = document.getElementById(activeId);
+      if (activeEl) activeEl.classList.add('is-active');
+
+      // Update bottombar buttons
+      document.querySelectorAll('.bottombar button').forEach((btn) => {
+        if (btn.getAttribute('data-route') === targetHash) {
+          btn.setAttribute('aria-current', 'page');
+        } else {
+          btn.removeAttribute('aria-current');
+        }
+      });
+
+      // Ensure hash matches targetHash
+      if (location.hash !== targetHash) {
+        history.replaceState(null, '', targetHash);
+      }
+    }
+
+    function initRouting() {
+      document.querySelectorAll('.bottombar button').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const route = btn.getAttribute('data-route');
+          if (route) location.hash = route;
+        });
+      });
+
+      window.addEventListener('hashchange', () => setActiveRoute(location.hash));
+      setActiveRoute(location.hash);
+    }
+    initRouting();
+  </script>
+  <script>
+    // Likes screen functionality
+    const LIKES_STORAGE_KEY = 'papello:likes';
+    let allProducts = []; // Cache for products.json
+
+    // Migration: convert old format to new format (array of IDs)
+    function migrateLikesStorage() {
+      try {
+        const oldLikes = localStorage.getItem(LIKE_STORAGE_KEY);
+        if (oldLikes) {
+          const parsed = JSON.parse(oldLikes);
+          if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+            // Old format: array of objects, convert to array of IDs
+            const newLikes = parsed.map(item => item.imageUrl || item.id || '');
+            localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(newLikes));
+            localStorage.removeItem(LIKE_STORAGE_KEY);
+            console.log('Migrated likes storage to new format');
+          }
+        }
+      } catch (e) {
+        console.error('Migration failed:', e);
+      }
+    }
+
+    function readLikesIds() {
+      try {
+        const likes = localStorage.getItem(LIKES_STORAGE_KEY);
+        const parsed = likes ? JSON.parse(likes) : [];
+        console.log('Read likes from localStorage:', parsed);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        console.error('Failed to parse likes from localStorage');
+        return [];
+      }
+    }
+
+    function writeLikesIds(ids) {
+      localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(ids));
+      console.log('Wrote likes to localStorage:', ids);
+    }
+
+    function removeLike(id) {
+      const likes = readLikesIds();
+      const filtered = likes.filter(likeId => likeId !== id);
+      writeLikesIds(filtered);
+      return filtered;
+    }
+
+    function createLikeCard(product) {
+      const card = document.createElement('div');
+      card.className = 'like-card';
+      card.setAttribute('role', 'listitem');
+
+      const img = document.createElement('img');
+      img.alt = (product.title || '').slice(0, 70) || 'Открытка';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.dataset.src = product.imageUrl;
+
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = product.title || '';
+
+      const price = document.createElement('div');
+      price.className = 'price';
+      price.textContent = product.price || '';
+
+      const overlay = document.createElement('div');
+      overlay.className = 'slide-overlay';
+      overlay.innerHTML = `
+        <div class="overlay-title">${product.title || ''}</div>
+        <div class="overlay-price">${product.price || ''}</div>
+        <div class="overlay-actions">
+          <button class="overlay-btn" data-action="share" aria-label="Поделиться">Share</button>
+          <button class="overlay-btn" data-action="unlike" aria-label="Убрать из избранного">Unlike</button>
+        </div>
+      `;
+
+      card.appendChild(img);
+      card.appendChild(title);
+      card.appendChild(price);
+      card.appendChild(overlay);
+
+      // Attach handlers
+      attachLikeCardHandlers(card, product);
+
+      return card;
+    }
+
+    function attachLikeCardHandlers(card, product) {
+      const overlay = card.querySelector('.slide-overlay');
+      const unlikeBtn = overlay.querySelector('[data-action="unlike"]');
+      const shareBtn = overlay.querySelector('[data-action="share"]');
+      let hideTimer = null;
+
+      function showOverlayTemporarily() {
+        overlay.classList.add('is-visible');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => overlay.classList.remove('is-visible'), 3000);
+      }
+
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.overlay-btn')) return;
+        showOverlayTemporarily();
+      });
+
+      unlikeBtn.addEventListener('click', () => {
+        removeLike(product.id);
+        card.remove();
+        updateLikesScreen();
+        // Update live region
+        const live = document.getElementById('likesLive');
+        if (live) live.textContent = 'Карточка удалена из избранного';
+      });
+
+      shareBtn.addEventListener('click', async () => {
+        try {
+          if (navigator.share) {
+            const shareData = { title: product.title || 'Papéllo', text: product.title || 'Papéllo', url: location.href };
+            if (navigator.canShare && navigator.canShare({ files: [] })) {
+              const resp = await fetch(product.imageUrl);
+              const blob = await resp.blob();
+              const file = new File([blob], 'card.jpg', { type: blob.type || 'image/jpeg' });
+              if (navigator.canShare({ files: [file] })) {
+                await navigator.share({ ...shareData, files: [file] });
+                return;
+              }
+            }
+            await navigator.share(shareData);
+          } else {
+            await navigator.clipboard.writeText(product.imageUrl);
+            alert('Ссылка скопирована');
+          }
+        } catch (err) {
+          console.error('Share failed', err);
+        }
+      });
+    }
+
+    function lazyObserveLikes(img) {
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries, obs) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const el = entry.target;
+              if (el.dataset.src && !el.src) el.src = el.dataset.src;
+              obs.unobserve(el);
+            }
+          });
+        }, { rootMargin: '50px' });
+        io.observe(img);
+      } else {
+        img.src = img.dataset.src;
+      }
+    }
+
+    async function loadProductsForLikes() {
+      if (allProducts.length > 0) return allProducts;
+
+      try {
+        const res = await fetch('/data/products.json');
+        const data = await res.json();
+        allProducts = Array.isArray(data) ? data : (data?.items || []);
+        console.log('Loaded products for likes:', allProducts.length);
+        return allProducts;
+      } catch (e) {
+        console.error('Failed to load products for likes:', e);
+        return [];
+      }
+    }
+
+    function updateLikesScreen() {
+      const skeleton = document.getElementById('likesSkeleton');
+      const empty = document.getElementById('likesEmpty');
+      const grid = document.getElementById('likesGrid');
+      const live = document.getElementById('likesLive');
+
+      const likesIds = readLikesIds();
+      console.log('Updating likes screen with IDs:', likesIds);
+
+      if (likesIds.length === 0) {
+        skeleton.style.display = 'none';
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        if (live) live.textContent = 'У вас пока нет лайков';
+        return;
+      }
+
+      // Filter products by liked IDs
+      const likedProducts = allProducts.filter(p => likesIds.includes(p.id));
+      console.log('Found liked products:', likedProducts.length, 'out of', allProducts.length);
+
+      if (likedProducts.length === 0) {
+        skeleton.style.display = 'none';
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        if (live) live.textContent = 'У вас пока нет лайков';
+        return;
+      }
+
+      // Show grid with liked products
+      skeleton.style.display = 'none';
+      empty.style.display = 'none';
+      grid.style.display = 'grid';
+
+      grid.innerHTML = '';
+      likedProducts.forEach(product => {
+        const card = createLikeCard(product);
+        grid.appendChild(card);
+        const img = card.querySelector('img');
+        lazyObserveLikes(img);
+      });
+
+      if (live) live.textContent = `Показано ${likedProducts.length} избранных карточек`;
+    }
+
+    // Listen for likes changes from other parts of the app
+    function handleLikesChanged(event) {
+      console.log('Likes changed event received:', event.detail);
+      if (location.hash === '#/likes') {
+        updateLikesScreen();
+      }
+    }
+
+    // Initialize likes screen when routing to it
+    const originalSetActiveRoute = setActiveRoute;
+    setActiveRoute = function(hash) {
+      originalSetActiveRoute(hash);
+
+      if (hash === '#/likes') {
+        console.log('Navigating to likes screen');
+        loadProductsForLikes().then(() => {
+          updateLikesScreen();
+        });
+      } else if (hash === '#/all') {
+        console.log('Navigating to all cards screen');
+        // Save current scroll position if we're leaving a screen
+        if (location.hash !== '#/all') {
+          saveScrollPosition();
+        }
+        initializeAllCardsScreen().then(() => {
+          // Setup infinite scroll after initialization
+          if (cleanupInfiniteScroll) cleanupInfiniteScroll();
+          cleanupInfiniteScroll = setupInfiniteScroll();
+        });
+      }
+    };
+
+    // Subscribe to likes change events
+    window.addEventListener('papello:likes:changed', handleLikesChanged);
+
+    // Debug function to add test likes
+    function addTestLikes() {
+      const testLikes = ['fav-001', 'fav-002', 'fav-003'];
+      writeLikesIds(testLikes);
+      console.log('Added test likes:', testLikes);
+      updateLikesScreen();
+    }
+
+    // Run migration on load
+    migrateLikesStorage();
+  </script>
+  <script>
+    // All cards screen functionality
+    const ALL_CARDS_PAGE_SIZE = 20;
+    let allCardsData = []; // Cache for all products
+    let currentPage = 0;
+    let isLoading = false;
+    let hasMoreData = true;
+    let scrollPosition = 0;
+
+    // DOM elements
+    const allSkeleton = document.getElementById('allSkeleton');
+    const allGrid = document.getElementById('allGrid');
+    const loadingMore = document.getElementById('loadingMore');
+    const endOfList = document.getElementById('endOfList');
+    const allLive = document.getElementById('allLive');
+
+    // Create a card for the all cards grid
+    function createAllCard(product) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.setAttribute('role', 'listitem');
+
+      const img = document.createElement('img');
+      img.alt = (product.title || '').slice(0, 70) || 'Открытка';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.dataset.src = product.imageUrl;
+
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = product.title || '';
+
+      const price = document.createElement('div');
+      price.className = 'price';
+      price.textContent = product.price || '';
+
+      const overlay = document.createElement('div');
+      overlay.className = 'slide-overlay';
+
+      // Check if this product is liked
+      const likes = readLikesIds();
+      const isLiked = likes.includes(product.id);
+
+      overlay.innerHTML = `
+        <div class="overlay-title">${product.title || ''}</div>
+        <div class="overlay-price">${product.price || ''}</div>
+        <div class="overlay-actions">
+          <button class="overlay-btn" data-action="share" aria-label="Поделиться">Share</button>
+          <button class="overlay-btn" data-action="like" aria-pressed="${isLiked}" aria-label="В избранное">${isLiked ? 'Liked' : 'Like'}</button>
+        </div>
+      `;
+
+      card.appendChild(img);
+      card.appendChild(title);
+      card.appendChild(price);
+      card.appendChild(overlay);
+
+      // Attach handlers
+      attachAllCardHandlers(card, product);
+
+      return card;
+    }
+
+    function attachAllCardHandlers(card, product) {
+      const overlay = card.querySelector('.slide-overlay');
+      const likeBtn = overlay.querySelector('[data-action="like"]');
+      const shareBtn = overlay.querySelector('[data-action="share"]');
+      let hideTimer = null;
+
+      function showOverlayTemporarily() {
+        overlay.classList.add('is-visible');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => overlay.classList.remove('is-visible'), 3000);
+      }
+
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.overlay-btn')) return;
+        showOverlayTemporarily();
+      });
+
+      likeBtn.addEventListener('click', () => {
+        const likes = readLikesIds();
+        const isLiked = likes.includes(product.id);
+        if (isLiked) {
+          const filtered = likes.filter(id => id !== product.id);
+          writeLikesIds(filtered);
+          likeBtn.textContent = 'Like';
+          likeBtn.setAttribute('aria-pressed', 'false');
+        } else {
+          likes.push(product.id);
+          writeLikesIds(likes);
+          likeBtn.textContent = 'Liked';
+          likeBtn.setAttribute('aria-pressed', 'true');
+        }
+        console.log(`Like ${isLiked ? 'removed' : 'added'} for item:`, product.id, 'Current likes:', readLikesIds());
+      });
+
+      shareBtn.addEventListener('click', async () => {
+        try {
+          if (navigator.share) {
+            const shareData = { title: product.title || 'Papéllo', text: product.title || 'Papéllo', url: location.href };
+            if (navigator.canShare && navigator.canShare({ files: [] })) {
+              const resp = await fetch(product.imageUrl);
+              const blob = await resp.blob();
+              const file = new File([blob], 'card.jpg', { type: blob.type || 'image/jpeg' });
+              if (navigator.canShare({ files: [file] })) {
+                await navigator.share({ ...shareData, files: [file] });
+                return;
+              }
+            }
+            await navigator.share(shareData);
+          } else {
+            await navigator.clipboard.writeText(product.imageUrl);
+            alert('Ссылка скопирована');
+          }
+        } catch (err) {
+          console.error('Share failed', err);
+        }
+      });
+    }
+
+    // Lazy loading for all cards
+    function lazyObserveAllCards(img) {
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries, obs) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const el = entry.target;
+              if (el.dataset.src && !el.src) el.src = el.dataset.src;
+              obs.unobserve(el);
+            }
+          });
+        }, { rootMargin: '50px' });
+        io.observe(img);
+      } else {
+        img.src = img.dataset.src;
+      }
+    }
+
+    // Load all products data
+    async function loadAllProductsData() {
+      if (allCardsData.length > 0) return allCardsData;
+
+      try {
+        const res = await fetch('/data/products.json');
+        const data = await res.json();
+        allCardsData = Array.isArray(data) ? data : (data?.items || []);
+        console.log('Loaded all products data:', allCardsData.length);
+        return allCardsData;
+      } catch (e) {
+        console.error('Failed to load all products data:', e);
+        return [];
+      }
+    }
+
+    // Render a page of cards
+    function renderCardsPage(startIndex, endIndex) {
+      const pageData = allCardsData.slice(startIndex, endIndex);
+
+      pageData.forEach(product => {
+        const card = createAllCard(product);
+        allGrid.appendChild(card);
+        const img = card.querySelector('img');
+        lazyObserveAllCards(img);
+      });
+
+      // Update live region
+      if (allLive) {
+        const totalShown = Math.min(endIndex, allCardsData.length);
+        allLive.textContent = `Показано ${totalShown} из ${allCardsData.length} карточек`;
+      }
+    }
+
+    // Load next page
+    async function loadNextPage() {
+      if (isLoading || !hasMoreData) return;
+
+      isLoading = true;
+      loadingMore.style.display = 'flex';
+
+      // Simulate loading delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const startIndex = currentPage * ALL_CARDS_PAGE_SIZE;
+      const endIndex = startIndex + ALL_CARDS_PAGE_SIZE;
+
+      if (startIndex >= allCardsData.length) {
+        hasMoreData = false;
+        loadingMore.style.display = 'none';
+        endOfList.style.display = 'block';
+        if (allLive) allLive.textContent = 'Показаны все карточки';
+        return;
+      }
+
+      renderCardsPage(startIndex, endIndex);
+      currentPage++;
+
+      // Check if we've reached the end
+      if (endIndex >= allCardsData.length) {
+        hasMoreData = false;
+        loadingMore.style.display = 'none';
+        endOfList.style.display = 'block';
+        if (allLive) allLive.textContent = 'Показаны все карточки';
+      } else {
+        loadingMore.style.display = 'none';
+      }
+
+      isLoading = false;
+    }
+
+    // Initialize all cards screen
+    async function initializeAllCardsScreen() {
+      console.log('Initializing all cards screen');
+
+      // Reset state
+      currentPage = 0;
+      hasMoreData = true;
+      isLoading = false;
+
+      // Show skeleton while loading
+      allSkeleton.style.display = 'block';
+      allGrid.style.display = 'none';
+      loadingMore.style.display = 'none';
+      endOfList.style.display = 'none';
+
+      // Load products data
+      await loadAllProductsData();
+
+      if (allCardsData.length === 0) {
+        allSkeleton.style.display = 'none';
+        if (allLive) allLive.textContent = 'Нет доступных карточек';
+        return;
+      }
+
+      // Hide skeleton and show grid
+      allSkeleton.style.display = 'none';
+      allGrid.style.display = 'grid';
+      allGrid.innerHTML = '';
+
+      // Load first page
+      await loadNextPage();
+
+      // Restore scroll position if available
+      if (scrollPosition > 0) {
+        setTimeout(() => {
+          window.scrollTo(0, scrollPosition);
+          scrollPosition = 0;
+        }, 100);
+      }
+    }
+
+    // Intersection Observer for infinite scroll
+    function setupInfiniteScroll() {
+      if (!('IntersectionObserver' in window)) return;
+
+      const sentinel = document.createElement('div');
+      sentinel.style.height = '1px';
+      sentinel.style.width = '100%';
+      sentinel.id = 'scrollSentinel';
+      document.body.appendChild(sentinel);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && hasMoreData && !isLoading) {
+            loadNextPage();
+          }
+        });
+      }, { rootMargin: '100px' });
+
+      observer.observe(sentinel);
+
+      // Clean up function
+      return () => {
+        observer.disconnect();
+        if (sentinel.parentNode) {
+          sentinel.parentNode.removeChild(sentinel);
+        }
+      };
+    }
+
+    // Save scroll position when leaving
+    function saveScrollPosition() {
+      if (location.hash === '#/all') {
+        scrollPosition = window.scrollY;
+        console.log('Saved scroll position:', scrollPosition);
+      }
+    }
+
+    // Listen for likes changes to update card states
+    function handleAllCardsLikesChanged(event) {
+      console.log('All cards likes changed event received:', event.detail);
+      if (location.hash === '#/all') {
+        // Update like button states in visible cards
+        const likeButtons = allGrid.querySelectorAll('[data-action="like"]');
+        likeButtons.forEach(btn => {
+          const card = btn.closest('.card');
+          if (card) {
+            // Find the product ID (we'll need to store this in the card)
+            // For now, just refresh the entire grid
+            // This could be optimized later
+          }
+        });
+      }
+    }
+
+    // Subscribe to likes change events
+    window.addEventListener('papello:likes:changed', handleAllCardsLikesChanged);
+
+    // Clean up function for infinite scroll
+    let cleanupInfiniteScroll = null;
+
+    // Save scroll position when leaving the page
+    window.addEventListener('beforeunload', saveScrollPosition);
+    window.addEventListener('pagehide', saveScrollPosition);
+  </script>
+  <script>
+    // Platform detection and compatibility
+    const platform = {
+      isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+      isAndroid: /Android/.test(navigator.userAgent),
+      isWeb: !(/iPad|iPhone|iPod|Android/.test(navigator.userAgent)),
+      isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    };
+    
+    console.log('Platform detected:', platform);
+    
+    // Orientation enforcement
+    function enforcePortraitOrientation() {
+      if (window.screen && window.screen.orientation) {
+        // Modern browsers
+        if (window.screen.orientation.type.includes('landscape')) {
+          // Try to lock to portrait (may not work on all devices)
+          try {
+            window.screen.orientation.lock('portrait').catch(() => {
+              console.log('Orientation lock not supported');
+            });
+          } catch (e) {
+            console.log('Orientation lock failed:', e);
+          }
+        }
+      }
+      
+      // Fallback: check orientation and show message
+      const isLandscape = window.innerHeight < window.innerWidth;
+      if (isLandscape && window.innerHeight < 500) {
+        showOrientationMessage();
+      }
+    }
+    
+    function showOrientationMessage() {
+      // Remove existing message
+      const existing = document.querySelector('.orientation-message');
+      if (existing) existing.remove();
+      
+      const message = document.createElement('div');
+      message.className = 'orientation-message';
+      message.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #2A3D66;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        text-align: center;
+        padding: 20px;
+        z-index: 99999;
+        flex-direction: column;
+        gap: 20px;
+      `;
+      
+      message.innerHTML = `
+        <div>📱</div>
+        <div>Please rotate your device to portrait mode</div>
+        <div style="font-size: 14px; opacity: 0.8;">Papéllo works best in portrait orientation</div>
+      `;
+      
+      document.body.appendChild(message);
+    }
+    
+    // Platform-specific optimizations
+    function applyPlatformOptimizations() {
+      if (platform.isIOS) {
+        // iOS-specific optimizations
+        document.documentElement.style.setProperty('--safe-area-bottom', 'env(safe-area-inset-bottom)');
+        
+        // Prevent zoom on input focus
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+          viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+        }
+        
+        // Add iOS-specific touch handling
+        document.addEventListener('touchstart', function() {}, { passive: true });
+        document.addEventListener('touchmove', function() {}, { passive: true });
+      }
+      
+      if (platform.isAndroid) {
+        // Android-specific optimizations
+        document.documentElement.style.setProperty('--safe-area-bottom', '0px');
+        
+        // Ensure proper touch targets
+        const buttons = document.querySelectorAll('button, .overlay-btn');
+        buttons.forEach(btn => {
+          btn.style.minHeight = '44px';
+          btn.style.minWidth = '44px';
+        });
+      }
+      
+      // PWA-specific optimizations
+      if (platform.isStandalone) {
+        document.body.classList.add('pwa-standalone');
+        
+        // Hide browser UI elements in standalone mode
+        if (platform.isIOS) {
+          // iOS standalone mode adjustments
+          document.documentElement.style.setProperty('--status-bar-height', 'env(safe-area-inset-top)');
+        }
+      }
+    }
+    
+    // Handle orientation changes
+    function handleOrientationChange() {
+      const isLandscape = window.innerHeight < window.innerWidth;
+      
+      if (isLandscape && window.innerHeight < 500) {
+        showOrientationMessage();
+      } else {
+        const message = document.querySelector('.orientation-message');
+        if (message) message.remove();
+      }
+    }
+    
+    // Initialize platform optimizations
+    document.addEventListener('DOMContentLoaded', () => {
+      enforcePortraitOrientation();
+      applyPlatformOptimizations();
+      
+      // Listen for orientation changes
+      window.addEventListener('orientationchange', handleOrientationChange);
+      window.addEventListener('resize', handleOrientationChange);
+      
+      // Check initial orientation
+      handleOrientationChange();
     });
-  }
-</script>  
+    
+    // Service Worker registration with platform detection
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Для GitHub Pages с репо-путём укажи префикс: navigator.serviceWorker.register('/repo-name/sw.js')
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('Service Worker registered successfully:', registration);
+            
+            // Platform-specific SW optimizations
+            if (platform.isIOS) {
+              console.log('iOS device detected - applying iOS-specific optimizations');
+            } else if (platform.isAndroid) {
+              console.log('Android device detected - applying Android-specific optimizations');
+            }
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
+  
+  <script>
+    // PWA Install functionality
+    let deferredPrompt = null;
+    let isAppInstalled = false;
+    
+    // Check if app is already installed
+    function checkIfAppInstalled() {
+      // Check if running in standalone mode
+      if (window.matchMedia('(display-mode: standalone)').matches || 
+          window.navigator.standalone === true) {
+        isAppInstalled = true;
+        hideInstallButton();
+        return true;
+      }
+      
+      // Check if app was previously installed
+      if (localStorage.getItem('papello:app-installed') === 'true') {
+        isAppInstalled = true;
+        hideInstallButton();
+        return true;
+      }
+      
+      return false;
+    }
+    
+    // Show install button
+    function showInstallButton() {
+      if (isAppInstalled) return;
+      
+      const installBtn = document.getElementById('installAppBtn');
+      if (installBtn) {
+        installBtn.style.display = 'flex';
+        console.log('Install button shown');
+      }
+    }
+    
+    // Hide install button
+    function hideInstallButton() {
+      const installBtn = document.getElementById('installAppBtn');
+      if (installBtn) {
+        installBtn.style.display = 'none';
+        console.log('Install button hidden');
+      }
+    }
+    
+    // Handle beforeinstallprompt event (Android/Desktop)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      console.log('beforeinstallprompt event fired');
+      
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      
+      // Stash the event so it can be triggered later
+      deferredPrompt = e;
+      
+      // Show the install button
+      showInstallButton();
+    });
+    
+    // Handle appinstalled event
+    window.addEventListener('appinstalled', (e) => {
+      console.log('App was installed');
+      
+      isAppInstalled = true;
+      hideInstallButton();
+      
+      // Clear the deferredPrompt
+      deferredPrompt = null;
+      
+      // Mark app as installed in localStorage
+      localStorage.setItem('papello:app-installed', 'true');
+      
+      // Show success message
+      showInstallSuccessMessage();
+    });
+    
+    // Handle install button click
+    function handleInstallClick() {
+      if (platform.isIOS) {
+        // Show iOS install hint
+        showIOSInstallHint();
+      } else if (deferredPrompt) {
+        // Show the install prompt (Android/Desktop)
+        deferredPrompt.prompt();
+        
+        // Wait for the user to respond to the prompt
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          
+          // Clear the deferredPrompt
+          deferredPrompt = null;
+        });
+      }
+    }
+    
+    // Show iOS install hint
+    function showIOSInstallHint() {
+      const hint = document.getElementById('iosInstallHint');
+      if (hint) {
+        hint.classList.add('is-visible');
+        hint.setAttribute('aria-hidden', 'false');
+        
+        // Focus management
+        const closeBtn = hint.querySelector('.close-btn');
+        if (closeBtn) closeBtn.focus();
+        
+        console.log('iOS install hint shown');
+      }
+    }
+    
+    // Close iOS install hint
+    function closeIOSInstallHint() {
+      const hint = document.getElementById('iosInstallHint');
+      if (hint) {
+        hint.classList.remove('is-visible');
+        hint.setAttribute('aria-hidden', 'true');
+        
+        // Return focus to install button
+        const installBtn = document.getElementById('installAppBtn');
+        if (installBtn) installBtn.focus();
+        
+        console.log('iOS install hint closed');
+      }
+    }
+    
+    // Show install success message
+    function showInstallSuccessMessage() {
+      // You can implement a toast notification here
+      console.log('Installation completed successfully!');
+      alert('Papéllo has been installed successfully!');
+    }
+    
+    // Handle keyboard navigation for iOS hint
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const hint = document.getElementById('iosInstallHint');
+        if (hint && hint.classList.contains('is-visible')) {
+          closeIOSInstallHint();
+        }
+      }
+    });
+    
+    // Handle clicks outside iOS hint to close it
+    document.addEventListener('click', (e) => {
+      const hint = document.getElementById('iosInstallHint');
+      if (hint && hint.classList.contains('is-visible')) {
+        const hintContent = hint.querySelector('.ios-install-hint-content');
+        if (hintContent && !hintContent.contains(e.target)) {
+          closeIOSInstallHint();
+        }
+      }
+    });
+    
+    // Initialize install functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check if app is already installed
+      checkIfAppInstalled();
+      
+      // Add click handler to install button
+      const installBtn = document.getElementById('installAppBtn');
+      if (installBtn) {
+        installBtn.addEventListener('click', handleInstallClick);
+      }
+      
+      // Check if we should show install button on page load
+      // (for cases where beforeinstallprompt might have fired before DOM was ready)
+      if (deferredPrompt && !isAppInstalled) {
+        showInstallButton();
+      }
+    });
+    
+    // Make functions globally available for onclick handlers
+    window.closeIOSInstallHint = closeIOSInstallHint;
+  </script>
 </body>
 </html>

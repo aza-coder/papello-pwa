@@ -1,5 +1,45 @@
 [
   {
+    "id": "fav-001",
+    "title": "Happy Birthday Cat",
+    "price": "5 USD",
+    "imageUrl": "/assets/cards/!favorite/meme-funny-1.jpg",
+    "aspectRatio": "2:3",
+    "tags": ["birthday", "cat", "funny"]
+  },
+  {
+    "id": "fav-002",
+    "title": "Romantic Sunset Card",
+    "price": "4 USD",
+    "imageUrl": "/assets/cards/!favorite/meme-funny-2.jpg",
+    "aspectRatio": "2:3",
+    "tags": ["romantic", "sunset", "love"]
+  },
+  {
+    "id": "fav-003",
+    "title": "Funny Meme Style Card",
+    "price": "3 USD",
+    "imageUrl": "/assets/cards/!favorite/meme-funny-3.jpg",
+    "aspectRatio": "2:3",
+    "tags": ["meme", "funny", "humor"]
+  },
+  {
+    "id": "fav-004",
+    "title": "Funny Meme Style Card",
+    "price": "3 USD",
+    "imageUrl": "/assets/cards/!favorite/meme-funny-4.jpg",
+    "aspectRatio": "2:3",
+    "tags": ["meme", "funny", "humor"]
+  },
+  {
+    "id": "fav-005",
+    "title": "Funny Meme Style Card",
+    "price": "3 USD",
+    "imageUrl": "/assets/cards/!favorite/meme-funny-5.jpg",
+    "aspectRatio": "2:3",
+    "tags": ["meme", "funny", "humor"]
+  },
+  {
     "id": "happy-birthday-balloons",
     "title": "Happy Birthday Balloons",
     "price": 2.99,

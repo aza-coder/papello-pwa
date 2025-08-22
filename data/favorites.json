@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "id": "fav-001",
+      "title": "Happy Birthday Cat",
+      "price": "5 USD",
+      "image": "assets/cards/!favorite/meme-funny-1.jpg"
+    },
+    {
+      "id": "fav-002",
+      "title": "Romantic Sunset Card",
+      "price": "4 USD",
+      "image": "assets/cards/!favorite/meme-funny-2.jpg"
+    },
+    {
+      "id": "fav-003",
+      "title": "Funny Meme Style Card",
+      "price": "3 USD",
+      "image": "assets/cards/!favorite/meme-funny-3.jpg"
+    },
+    {
+      "id": "fav-003",
+      "title": "Funny Meme Style Card",
+      "price": "3 USD",
+      "image": "assets/cards/!favorite/meme-funny-4.jpg"
+    },
+    {
+      "id": "fav-003",
+      "title": "Funny Meme Style Card",
+      "price": "3 USD",
+      "image": "assets/cards/!favorite/meme-funny-5.jpg"
+    }
+  ]
+}
