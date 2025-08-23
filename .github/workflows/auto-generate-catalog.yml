@@ -23,12 +23,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
+          # Убираем cache: 'npm' так как у нас нет package-lock.json
       
       - name: Install dependencies (if needed)
         run: |
           if [ -f "package.json" ]; then
-            npm ci
+            npm install
           fi
       
       - name: Generate catalog
