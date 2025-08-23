@@ -1,0 +1,7 @@
+ GITHUB_PAGES_CHECKLIST.md | 174 [32m++++++++++++++++[m[31m------------------------------[m
+ data/favorites.json       |  10 [32m+[m[31m--[m
+ data/products.json        |  12 [32m++[m[31m--[m
+ index.html                |   2 [32m+[m[31m-[m
+ manifest.json             |   4 [32m+[m[31m-[m
+ sw.js                     |  12 [32m++[m[31m--[m
+ 6 files changed, 78 insertions(+), 136 deletions(-)

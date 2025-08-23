@@ -1,5 +1,5 @@
 /* Papello PWA service worker */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const SHELL_CACHE = `shell-${VERSION}`;
 const RUNTIME_CACHE = `runtime-${VERSION}`;
 
@@ -100,21 +100,21 @@ self.addEventListener('fetch', (event) => {
 
   // Shell assets — Cache First (HTML, manifest, icons, logo)
   if (request.mode === 'navigate' || 
-      url.pathname === '/papello-pwa/manifest.json' ||
-      url.pathname.startsWith('/papello-pwa/assets/brand/') ||
-      url.pathname.startsWith('/papello-pwa/assets/icons/')) {
+      url.pathname.endsWith('/manifest.json') ||
+      url.pathname.includes('/assets/brand/') ||
+      url.pathname.includes('/assets/icons/')) {
     event.respondWith(cacheFirst(request));
     return;
   }
 
   // JSON data — Network First with cache fallback
-  if (url.pathname.startsWith('/papello-pwa/data/') && url.pathname.endsWith('.json')) {
+  if (url.pathname.includes('/data/') && url.pathname.endsWith('.json')) {
     event.respondWith(networkFirst(request));
     return;
   }
 
   // Product images — Stale While Revalidate
-  if (request.destination === 'image' && url.pathname.startsWith('/papello-pwa/assets/cards/')) {
+  if (request.destination === 'image' && url.pathname.includes('/assets/cards/')) {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }

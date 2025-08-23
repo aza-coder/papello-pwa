@@ -963,7 +963,7 @@
         id: raw.id || raw.image || raw.title || '',
         title: raw.title || '',
         price: formatPrice(raw.price),
-        imageUrl: raw.image?.startsWith('/') ? raw.image : `/${raw.image}`
+        imageUrl: raw.image || raw.imageUrl || ''
       };
     }
 
