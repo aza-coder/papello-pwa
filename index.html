@@ -14,6 +14,11 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="application-name" content="Papello" />
 
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sour+Gummy&display=swap" rel="stylesheet">
+  
   <!-- Platform-specific icons -->
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/logo-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="./assets/icons/logo-16.png" />
@@ -96,11 +101,16 @@
     .brand-row {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       margin: 6px 0 12px;
     }
-    .brand-row img { width: 28px; height: 28px; display: block; }
-    .brand-row .brand-name { font-size: 22px; font-weight: 700; letter-spacing: 0.2px; }
+    .brand-row img { width: 36px; height: 36px; display: block; }
+    .brand-row .brand-name { 
+      font-family: 'Sour Gummy', sans-serif;
+      font-size: 24px; 
+      font-weight: 400; 
+      letter-spacing: 0.2px; 
+    }
 
     .carousel {
       position: relative;
@@ -267,7 +277,10 @@
       text-align: center;
       padding: 10px;
     }
-    .placeholder .brand-row { justify-content: center; }
+    .placeholder .brand-row { 
+      justify-content: center; 
+      gap: 12px;
+    }
     .placeholder h2 { margin: 8px 0 0; font-size: 18px; font-weight: 600; }
 
     /* Likes screen */
@@ -688,7 +701,7 @@
   </div>
   <section class="hero screen is-active" id="screen-home">
     <div class="brand-row">
-      <img src="./assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <img src="./assets/brand/logo-512.svg" alt="Papéllo" width="36" height="36" />
       <div class="brand-name">Papéllo</div>
     </div>
     <div class="carousel" id="favoritesCarousel" role="region" aria-roledescription="carousel" aria-label="Избранные открытки" tabindex="0">
@@ -702,7 +715,7 @@
   </section>
   <section class="screen" id="screen-likes">
     <div class="brand-row">
-      <img src="./assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <img src="./assets/brand/logo-512.svg" alt="Papéllo" width="36" height="36" />
       <div class="brand-name">Papéllo</div>
     </div>
 
@@ -733,7 +746,7 @@
   </section>
   <section class="screen" id="screen-all">
     <div class="brand-row">
-      <img src="./assets/brand/logo.svg" alt="Papéllo" width="28" height="28" />
+      <img src="./assets/brand/logo-512.svg" alt="Papéllo" width="36" height="36" />
       <div class="brand-name">Papéllo</div>
     </div>
 
@@ -869,12 +882,12 @@
     function injectPreloaderLogo() {
       const logoHost = document.getElementById('preloader-logo');
       if (!logoHost) return;
-      fetch('./assets/brand/logo.svg')
+      fetch('./assets/brand/logo-512.svg')
         .then(r => r.ok ? r.text() : Promise.reject())
         .then(svg => { logoHost.innerHTML = svg; })
         .catch(() => {
           const img = new Image();
-          img.src = './assets/brand/logo.svg';
+          img.src = './assets/brand/logo-512.svg';
           img.alt = 'Papéllo';
           logoHost.appendChild(img);
         });
