@@ -9,6 +9,10 @@ on:
       - '.github/workflows/**'
   workflow_dispatch: # Позволяет запускать вручную
 
+# Даем права на запись в репозиторий
+permissions:
+  contents: write
+
 jobs:
   generate-catalog:
     runs-on: ubuntu-latest
@@ -18,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Получаем полную историю для правильного определения изменений
+          persist-credentials: false # Не сохраняем дефолтные креды
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,6 +40,12 @@ jobs:
         run: |
           node scripts/generate-catalog.mjs
       
+      - name: Configure git auth for push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+      
       - name: Check for changes
         id: check-changes
         run: |
@@ -50,9 +61,6 @@ jobs:
       - name: Commit and push changes
         if: steps.check-changes.outputs.has-changes == 'true'
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
           # Добавляем измененные файлы
           git add data/products.json data/favorites.json sw.js
           
@@ -60,7 +68,7 @@ jobs:
           git commit -m "chore(data): regenerate products & favorites [skip ci]"
           
           # Пушим изменения
-          git push origin main
+          git push origin HEAD
           
           echo "🚀 Изменения закоммичены и отправлены в репозиторий"
       
