@@ -38,13 +38,13 @@
 
   <!-- Стили (для простоты прямо тут) -->
   <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #2A3D66;
-      color: white;
-      padding: 10px;
-    }
+         body {
+       margin: 0;
+       font-family: sans-serif;
+       background: #f7f7f7;
+       color: #000000;
+       padding: 0;
+     }
     h1 { text-align: center; }
     .grid {
       display: grid;
@@ -96,21 +96,48 @@
       display: block;
     }
 
-    /* Hero with favorites slider */
-    .hero { padding-bottom: 120px; }
-    .brand-row {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      margin: 6px 0 12px;
-    }
-    .brand-row img { width: 36px; height: 36px; display: block; }
-    .brand-row .brand-name { 
-      font-family: 'Sour Gummy', sans-serif;
-      font-size: 24px; 
-      font-weight: 400; 
-      letter-spacing: 0.2px; 
-    }
+         /* Fixed Header */
+     .app-header {
+       position: fixed;
+       top: 0;
+       left: 0;
+       right: 0;
+       height: 64px;
+       background: transparent;
+       z-index: 1000;
+       display: flex;
+       align-items: center;
+       padding: 0 25px;
+     }
+     
+     .header-content {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       width: 100%;
+     }
+     
+     .brand-row {
+       display: inline-flex;
+       align-items: center;
+       gap: 12px;
+       margin: 0;
+     }
+     .brand-row img { width: 36px; height: 36px; display: block; }
+     .brand-row .brand-name { 
+       font-family: 'Sour Gummy', sans-serif;
+       font-size: 24px; 
+       font-weight: 400; 
+       letter-spacing: 0.2px; 
+       color: #000000;
+     }
+
+     /* Hero with favorites slider */
+     .hero { 
+       padding: 25px; 
+       padding-top: 89px; /* 64px header + 25px padding */
+       padding-bottom: 120px; 
+     }
 
     .carousel {
       position: relative;
@@ -133,17 +160,18 @@
       display: flex;
       justify-content: center;
     }
-    .slide-card {
-      width: 100%;
-      aspect-ratio: 2 / 3;
-      background: #fff;
-      color: #000;
-      border-radius: 5px;
-      overflow: hidden;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
+         .slide-card {
+       width: 100%;
+       aspect-ratio: 2 / 3;
+       background: #fff;
+       color: #000;
+       border-radius: 5px;
+       overflow: hidden;
+       position: relative;
+       display: flex;
+       flex-direction: column;
+       box-shadow: 0px 0px 50px -15px rgba(0, 0, 0, 0.15);
+     }
     .slide-card img {
       width: 100%;
       height: auto;
@@ -266,25 +294,29 @@
     .bottombar button[aria-current="page"] { background: rgba(0,0,0,0.08); }
     .bottombar img { width: 24px; height: 24px; filter: brightness(0) saturate(100%); }
 
-    /* Placeholder screens */
-    .placeholder {
-      min-height: calc(100dvh - 120px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      text-align: center;
-      padding: 10px;
-    }
+         /* Placeholder screens */
+     .placeholder {
+       min-height: calc(100dvh - 120px);
+       display: flex;
+       flex-direction: column;
+       align-items: center;
+       justify-content: center;
+       gap: 10px;
+       text-align: center;
+       padding: 25px;
+       padding-top: 89px; /* 64px header + 25px padding */
+     }
     .placeholder .brand-row { 
       justify-content: center; 
       gap: 12px;
     }
     .placeholder h2 { margin: 8px 0 0; font-size: 18px; font-weight: 600; }
 
-    /* Likes screen */
-    .likes-skeleton { padding: 10px 0; }
+         /* Likes screen */
+     .likes-skeleton { 
+       padding: 25px; 
+       padding-top: 89px; /* 64px header + 25px padding */
+     }
     .likes-skeleton .grid { gap: 12px; }
     .likes-skeleton .skeleton-card {
       width: 100%;
@@ -295,14 +327,15 @@
       animation: shimmer 1.2s infinite;
     }
 
-    .likes-empty {
-      min-height: calc(100dvh - 200px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 10px;
-    }
+         .likes-empty {
+       min-height: calc(100dvh - 200px);
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       text-align: center;
+       padding: 25px;
+       padding-top: 89px; /* 64px header + 25px padding */
+     }
     .empty-content h2 { margin: 0 0 20px; font-size: 18px; font-weight: 600; }
     .empty-btn {
       background: rgba(255,255,255,0.15);
@@ -314,12 +347,13 @@
       cursor: pointer;
     }
 
-    .likes-grid {
-      padding: 10px 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-    }
+         .likes-grid {
+       padding: 25px;
+       padding-top: 89px; /* 64px header + 25px padding */
+       display: grid;
+       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+       gap: 12px;
+     }
     .likes-grid .like-card {
       background: #fff;
       color: #000;
@@ -372,19 +406,21 @@
       cursor: pointer;
     }
 
-    /* All cards screen styles */
-    .all-skeleton {
-      padding: 10px 0;
-    }
+         /* All cards screen styles */
+     .all-skeleton {
+       padding: 25px;
+       padding-top: 89px; /* 64px header + 25px padding */
+     }
     .all-skeleton .grid {
       gap: 12px;
     }
-    .all-grid {
-      padding: 10px 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-    }
+         .all-grid {
+       padding: 25px;
+       padding-top: 89px; /* 64px header + 25px padding */
+       display: grid;
+       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+       gap: 12px;
+     }
     .all-grid .card {
       background: #fff;
       color: #000;
@@ -437,13 +473,14 @@
       cursor: pointer;
     }
 
-    .loading-more {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 20px 0;
-    }
+         .loading-more {
+       display: flex;
+       flex-direction: column;
+       align-items: center;
+       gap: 8px;
+       padding: 20px 25px;
+       padding-top: 89px; /* 64px header + 25px padding */
+     }
     .loading-dots {
       display: flex;
       gap: 4px;
@@ -462,14 +499,15 @@
       0%, 80%, 100% { transform: translateY(-10px); opacity: 0.6; }
       40% { transform: translateY(0); opacity: 1; }
     }
-    .loading-text { color: #fff; font-size: 14px; }
+         .loading-text { color: #000000; font-size: 14px; }
 
-    .end-of-list {
-      text-align: center;
-      padding: 20px 0;
-      color: #fff;
-      font-size: 14px;
-    }
+         .end-of-list {
+       text-align: center;
+       padding: 20px 25px;
+       padding-top: 89px; /* 64px header + 25px padding */
+       color: #000000;
+       font-size: 14px;
+     }
     
     /* Platform-specific styles and orientation enforcement */
     @media screen and (orientation: landscape) and (max-height: 500px) {
@@ -522,26 +560,22 @@
       }
     }
     
-    /* Install App Button */
-    .install-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #2A3D66;
-      color: white;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-radius: 25px;
-      padding: 12px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      z-index: 10001;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
+         /* Install App Button */
+     .install-btn {
+       background: #2A3D66;
+       color: white;
+       border: 2px solid rgba(255,255,255,0.3);
+       border-radius: 25px;
+       padding: 12px 20px;
+       font-size: 14px;
+       font-weight: 600;
+       cursor: pointer;
+       display: flex;
+       align-items: center;
+       gap: 8px;
+       transition: all 0.2s ease;
+       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+     }
     
     .install-btn:hover {
       background: #1a2a4a;
@@ -696,14 +730,24 @@
   </style>
 </head>
 <body>
-  <div id="preloader" aria-hidden="true">
-    <div id="preloader-logo"></div>
-  </div>
-  <section class="hero screen is-active" id="screen-home">
-    <div class="brand-row">
-      <img src="./assets/brand/logo-512.svg" alt="Papéllo" width="36" height="36" />
-      <div class="brand-name">Papéllo</div>
-    </div>
+     <!-- Fixed Header -->
+   <header class="app-header">
+     <div class="header-content">
+       <div class="brand-row">
+         <img src="./assets/brand/logo-512.svg" alt="Papéllo" width="36" height="36" />
+         <div class="brand-name">Papéllo</div>
+       </div>
+       <button id="installAppBtn" class="install-btn" aria-label="Install app" style="display: none;">
+         <img src="./assets/icons/download.svg" alt="" aria-hidden="true" />
+         <span>Install app</span>
+       </button>
+     </div>
+   </header>
+
+   <div id="preloader" aria-hidden="true">
+     <div id="preloader-logo"></div>
+   </div>
+   <section class="hero screen is-active" id="screen-home">
     <div class="carousel" id="favoritesCarousel" role="region" aria-roledescription="carousel" aria-label="Избранные открытки" tabindex="0">
       <div class="carousel-viewport" id="carouselViewport" aria-live="polite"></div>
       <div class="carousel-pagination" id="carouselDots" aria-hidden="true"></div>
@@ -713,11 +757,7 @@
       <div id="carouselLive" class="sr-only" aria-live="polite"></div>
     </div>
   </section>
-  <section class="screen" id="screen-likes">
-    <div class="brand-row">
-      <img src="./assets/brand/logo-512.svg" alt="Papéllo" width="36" height="36" />
-      <div class="brand-name">Papéllo</div>
-    </div>
+     <section class="screen" id="screen-likes">
 
     <!-- Loading skeleton -->
     <div class="likes-skeleton" id="likesSkeleton">
@@ -744,11 +784,7 @@
     <!-- Live region for empty state -->
     <div id="likesLive" class="sr-only" aria-live="polite"></div>
   </section>
-  <section class="screen" id="screen-all">
-    <div class="brand-row">
-      <img src="./assets/brand/logo-512.svg" alt="Papéllo" width="36" height="36" />
-      <div class="brand-name">Papéllo</div>
-    </div>
+     <section class="screen" id="screen-all">
 
     <!-- Loading skeleton -->
     <div class="all-skeleton" id="allSkeleton">
@@ -786,11 +822,7 @@
     <div id="allLive" class="sr-only" aria-live="polite"></div>
   </section>
 
-  <!-- Install App Button -->
-  <button id="installAppBtn" class="install-btn" aria-label="Install app" style="display: none;">
-    <img src="./assets/icons/download.svg" alt="" aria-hidden="true" />
-    <span>Install app</span>
-  </button>
+  
 
   <!-- iOS Install Hint Modal -->
   <div id="iosInstallHint" class="ios-install-hint" role="dialog" aria-labelledby="iosInstallTitle" aria-hidden="true">
