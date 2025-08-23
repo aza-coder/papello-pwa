@@ -1,124 +1,257 @@
-/* Papello PWA service worker */
-const VERSION = 'v7';
-const SHELL_CACHE = `shell-${VERSION}`;
-const RUNTIME_CACHE = `runtime-${VERSION}`;
+// Service Worker для Papéllo PWA
+// Версия: v4
 
-/** Что положим в shell-кеш (минимум) */
-const SHELL_ASSETS = [
+const SW_VERSION = 'v4';
+
+// Имена кэшей с версионированием
+const STATIC_CACHE = 'static-' + SW_VERSION;
+const DATA_CACHE = 'data-' + SW_VERSION;
+const IMG_CACHE = 'img-' + SW_VERSION;
+
+// Критичные ресурсы для предзагрузки
+const CRITICAL_RESOURCES = [
   './index.html',
   './manifest.json',
-  './assets/brand/logo.svg',
+  './sw.js',
+  './assets/brand/logo-512.svg',
   './assets/icons/home.svg',
   './assets/icons/heart.svg',
   './assets/icons/grid.svg',
-  './assets/icons/logo-16.png',
-  './assets/icons/logo-32.png',
-  './assets/icons/logo-144.png',
-  './assets/icons/logo-152.png',
-  './assets/icons/logo-167.png',
-  './assets/icons/logo-180.png',
-  './assets/icons/logo-192.png',
-  './assets/icons/logo-512.png',
   './assets/icons/download.svg'
 ];
 
-/** Установка: кэшируем shell */
+// Максимальное количество изображений в кэше
+const MAX_IMG_CACHE_ENTRIES = 50;
+
+// Утилиты для работы с кэшем
+async function openCache(cacheName) {
+  return await caches.open(cacheName);
+}
+
+async function deleteCache(cacheName) {
+  await caches.delete(cacheName);
+}
+
+async function getCacheKeys() {
+  return await caches.keys();
+}
+
+// Стратегии кэширования
+async function networkFirst(request, cacheName) {
+  try {
+    // Пытаемся получить свежие данные
+    const response = await fetch(request);
+    if (response.ok) {
+      // Кэшируем успешный ответ
+      const cache = await openCache(cacheName);
+      await cache.put(request, response.clone());
+      return response;
+    }
+  } catch (error) {
+    console.log('Network failed, falling back to cache:', error);
+  }
+  
+  // Возвращаем кэшированный ответ
+  const cache = await openCache(cacheName);
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  // Если нет в кэше, возвращаем fallback
+  return new Response('Offline content not available', { status: 503 });
+}
+
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await openCache(cacheName);
+  
+  // Сначала возвращаем кэшированный ответ (если есть)
+  const cachedResponse = await cache.match(request);
+  
+  // Параллельно обновляем кэш
+  fetch(request).then(async (response) => {
+    if (response.ok) {
+      await cache.put(request, response.clone());
+      
+      // Очищаем старые записи (LRU)
+      const keys = await cache.keys();
+      if (keys.length > MAX_IMG_CACHE_ENTRIES) {
+        // Получаем метаданные для сортировки по дате
+        const entries = await Promise.all(
+          keys.map(async (key) => {
+            const response = await cache.match(key);
+            const date = response.headers.get('date') || new Date().toISOString();
+            return { key, date };
+          })
+        );
+        
+        // Сортируем по дате и удаляем старые
+        entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const toDelete = entries.slice(0, entries.length - MAX_IMG_CACHE_ENTRIES);
+        
+        for (const entry of toDelete) {
+          await cache.delete(entry.key);
+        }
+      }
+    }
+  }).catch(error => {
+    console.log('Background update failed:', error);
+  });
+  
+  // Возвращаем кэшированный ответ или делаем fetch
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    return new Response('Image not available', { status: 503 });
+  }
+}
+
+// Очистка старых кэшей
+async function cleanupOldCaches() {
+  const cacheKeys = await getCacheKeys();
+  const currentCaches = [STATIC_CACHE, DATA_CACHE, IMG_CACHE];
+  
+  for (const cacheKey of cacheKeys) {
+    if (cacheKey.startsWith('static-') || cacheKey.startsWith('data-') || cacheKey.startsWith('img-')) {
+      if (!currentCaches.includes(cacheKey)) {
+        console.log('Deleting old cache:', cacheKey);
+        await deleteCache(cacheKey);
+      }
+    }
+  }
+}
+
+// Уведомление клиентов об активации
+async function notifyClients() {
+  const clients = await self.clients.matchAll();
+  for (const client of clients) {
+    client.postMessage({
+      type: 'SW_ACTIVATED',
+      version: SW_VERSION
+    });
+  }
+}
+
+// Обработчик установки
 self.addEventListener('install', (event) => {
+  console.log('Service Worker installing, version:', SW_VERSION);
+  
+  // Предзагружаем критичные ресурсы
   event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_ASSETS))
+    openCache(STATIC_CACHE).then(async (cache) => {
+      await cache.addAll(CRITICAL_RESOURCES);
+      console.log('Critical resources cached');
+    }).then(() => {
+      // Сразу активируем новую версию
+      return self.skipWaiting();
+    })
   );
-  self.skipWaiting();
 });
 
-/** Активация: чистим старые кеши */
+// Обработчик активации
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker activating, version:', SW_VERSION);
+  
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys
-        .filter((k) => ![SHELL_CACHE, RUNTIME_CACHE].includes(k))
-        .map((k) => caches.delete(k))
-      )
-    )
+    Promise.all([
+      // Очищаем старые кэши
+      cleanupOldCaches(),
+      // Берем контроль над всеми клиентами
+      self.clients.claim()
+    ]).then(() => {
+      // Уведомляем клиентов об активации
+      return notifyClients();
+    })
   );
-  self.clients.claim();
 });
 
-/** Хелперы стратегий */
-async function networkFirst(req) {
-  const cache = await caches.open(RUNTIME_CACHE);
-  try {
-    const res = await fetch(req);
-    if (res.ok) {
-      cache.put(req, res.clone());
-      return res;
-    }
-    throw new Error('Network response not ok');
-  } catch {
-    const cached = await cache.match(req);
-    if (cached) return cached;
-    throw new Error('Offline and no cache');
-  }
-}
-
-async function staleWhileRevalidate(req) {
-  const cache = await caches.open(RUNTIME_CACHE);
-  const cached = await cache.match(req);
-  
-  const networkPromise = fetch(req).then((res) => {
-    if (res.ok) {
-      cache.put(req, res.clone());
-      return res;
-    }
-    return null;
-  }).catch(() => null);
-  
-  return cached || networkPromise || fetch(req);
-}
-
-async function cacheFirst(req) {
-  const cache = await caches.open(SHELL_CACHE);
-  const cached = await cache.match(req);
-  if (cached) return cached;
-  
-  try {
-    const res = await fetch(req);
-    if (res.ok) {
-      cache.put(req, res.clone());
-    }
-    return res;
-  } catch {
-    return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
-  }
-}
-
-/** Основной роутинг */
+// Обработчик fetch
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  if (request.method !== 'GET') return;
-
   const url = new URL(request.url);
-
-  // Shell assets — Cache First (HTML, manifest, icons, logo)
+  
+  // Игнорируем не-GET запросы
+  if (request.method !== 'GET') {
+    return;
+  }
+  
+  // Игнорируем запросы к внешним доменам
+  if (url.origin !== location.origin) {
+    return;
+  }
+  
+  // HTML/навигация - network-first
   if (request.mode === 'navigate' || 
-      url.pathname.endsWith('/manifest.json') ||
-      url.pathname.includes('/assets/brand/') ||
-      url.pathname.includes('/assets/icons/')) {
-    event.respondWith(cacheFirst(request));
+      request.headers.get('accept')?.includes('text/html') ||
+      url.pathname.endsWith('/') ||
+      url.pathname.endsWith('/index.html')) {
+    
+    console.log('HTML request, using network-first:', url.pathname);
+    event.respondWith(networkFirst(request, STATIC_CACHE));
     return;
   }
-
-  // JSON data — Network First with cache fallback
-  if (url.pathname.includes('/data/') && url.pathname.endsWith('.json')) {
-    event.respondWith(networkFirst(request));
+  
+  // JSON данные - network-first
+  if (url.pathname.startsWith('./data/') || 
+      url.pathname.includes('/data/') ||
+      url.pathname.endsWith('.json')) {
+    
+    console.log('JSON request, using network-first:', url.pathname);
+    event.respondWith(networkFirst(request, DATA_CACHE));
     return;
   }
-
-  // Product images — Stale While Revalidate
-  if (request.destination === 'image' && url.pathname.includes('/assets/cards/')) {
-    event.respondWith(staleWhileRevalidate(request));
+  
+  // Изображения - stale-while-revalidate
+  if (request.destination === 'image' || 
+      url.pathname.includes('/assets/cards/') ||
+      url.pathname.includes('/assets/icons/') ||
+      url.pathname.includes('/assets/brand/')) {
+    
+    console.log('Image request, using stale-while-revalidate:', url.pathname);
+    event.respondWith(staleWhileRevalidate(request, IMG_CACHE));
     return;
   }
+  
+  // Остальные статические ресурсы - network-first
+  if (url.pathname.includes('/assets/') ||
+      url.pathname.includes('/fonts/') ||
+      url.pathname.includes('/css/') ||
+      url.pathname.includes('/js/')) {
+    
+    console.log('Static resource, using network-first:', url.pathname);
+    event.respondWith(networkFirst(request, STATIC_CACHE));
+    return;
+  }
+  
+  // Для всех остальных запросов - network-first
+  console.log('Other request, using network-first:', url.pathname);
+  event.respondWith(networkFirst(request, STATIC_CACHE));
+});
 
-  // Default — Network First for other resources
-  event.respondWith(networkFirst(request));
+// Обработчик сообщений от клиентов
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.ports[0].postMessage({
+      type: 'VERSION_INFO',
+      version: SW_VERSION
+    });
+  }
+});
+
+// Обработчик ошибок
+self.addEventListener('error', (error) => {
+  console.error('Service Worker error:', error);
+});
+
+// Обработчик необработанных отклонений
+self.addEventListener('unhandledrejection', (event) => {
+  console.error('Service Worker unhandled rejection:', event.reason);
 });
