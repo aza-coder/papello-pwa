@@ -1,52 +1,184 @@
 {
   "items": [
     {
-      "id": "happy-birthday-balloons",
-      "title": "Happy Birthday Balloons",
+      "id": "upscaled0040",
+      "title": "upscaled 0040",
+      "price": 40,
+      "imageUrl": "./assets/cards/birthday/upscaled_0040.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.913Z"
+    },
+    {
+      "id": "upscaled0039",
+      "title": "upscaled 0039",
+      "price": 39,
+      "imageUrl": "./assets/cards/birthday/upscaled_0039.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.911Z"
+    },
+    {
+      "id": "upscaled0038",
+      "title": "upscaled 0038",
+      "price": 38,
+      "imageUrl": "./assets/cards/birthday/upscaled_0038.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.910Z"
+    },
+    {
+      "id": "upscaled0036",
+      "title": "upscaled 0036",
+      "price": 36,
+      "imageUrl": "./assets/cards/birthday/upscaled_0036.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.908Z"
+    },
+    {
+      "id": "upscaled0035",
+      "title": "upscaled 0035",
+      "price": 35,
+      "imageUrl": "./assets/cards/birthday/upscaled_0035.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.907Z"
+    },
+    {
+      "id": "upscaled0034",
+      "title": "upscaled 0034",
+      "price": 34,
+      "imageUrl": "./assets/cards/birthday/upscaled_0034.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.905Z"
+    },
+    {
+      "id": "upscaled0033",
+      "title": "upscaled 0033",
+      "price": 33,
+      "imageUrl": "./assets/cards/birthday/upscaled_0033.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.902Z"
+    },
+    {
+      "id": "upscaled0032",
+      "title": "upscaled 0032",
+      "price": 32,
+      "imageUrl": "./assets/cards/birthday/upscaled_0032.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.900Z"
+    },
+    {
+      "id": "upscaled0031",
+      "title": "upscaled 0031",
+      "price": 31,
+      "imageUrl": "./assets/cards/birthday/upscaled_0031.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.899Z"
+    },
+    {
+      "id": "upscaled0030",
+      "title": "upscaled 0030",
+      "price": 30,
+      "imageUrl": "./assets/cards/birthday/upscaled_0030.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.897Z"
+    },
+    {
+      "id": "upscaled0029",
+      "title": "upscaled 0029",
+      "price": 29,
+      "imageUrl": "./assets/cards/birthday/upscaled_0029.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.896Z"
+    },
+    {
+      "id": "upscaled0028",
+      "title": "upscaled 0028",
+      "price": 28,
+      "imageUrl": "./assets/cards/birthday/upscaled_0028.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.894Z"
+    },
+    {
+      "id": "upscaled0026",
+      "title": "upscaled 0026",
+      "price": 26,
+      "imageUrl": "./assets/cards/birthday/upscaled_0026.png",
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.893Z"
+    },
+    {
+      "id": "happy-birthday-balloons299",
+      "title": "happy birthday balloons 2.99",
       "price": 2.99,
       "imageUrl": "./assets/cards/birthday/happy-birthday-balloons__2.99.jpg",
-      "tags": ["birthday"],
-      "createdAt": "2024-01-01T00:00:00.000Z"
+      "tags": [
+        "birthday"
+      ],
+      "createdAt": "2025-08-23T05:38:03.890Z"
     },
     {
-      "id": "fav-001",
-      "title": "Happy Birthday Cat",
-      "price": 5,
-      "imageUrl": "./assets/cards/!favorite/meme-funny-1.jpg",
-      "tags": ["!favorite"],
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "fav-002",
-      "title": "Romantic Sunset Card",
-      "price": 4,
-      "imageUrl": "./assets/cards/!favorite/meme-funny-2.jpg",
-      "tags": ["!favorite"],
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "fav-003",
-      "title": "Funny Meme Style Card",
-      "price": 3,
-      "imageUrl": "./assets/cards/!favorite/meme-funny-3.jpg",
-      "tags": ["!favorite"],
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "fav-004",
-      "title": "Funny Meme Style Card",
-      "price": 3,
-      "imageUrl": "./assets/cards/!favorite/meme-funny-4.jpg",
-      "tags": ["!favorite"],
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "fav-005",
-      "title": "Funny Meme Style Card",
-      "price": 3,
+      "id": "meme-funny-5",
+      "title": "meme funny 5",
+      "price": null,
       "imageUrl": "./assets/cards/!favorite/meme-funny-5.jpg",
-      "tags": ["!favorite"],
-      "createdAt": "2024-01-01T00:00:00.000Z"
+      "tags": [],
+      "createdAt": "2025-08-23T05:38:03.888Z"
+    },
+    {
+      "id": "meme-funny-4",
+      "title": "meme funny 4",
+      "price": null,
+      "imageUrl": "./assets/cards/!favorite/meme-funny-4.jpg",
+      "tags": [],
+      "createdAt": "2025-08-23T05:38:03.887Z"
+    },
+    {
+      "id": "meme-funny-3",
+      "title": "meme funny 3",
+      "price": null,
+      "imageUrl": "./assets/cards/!favorite/meme-funny-3.jpg",
+      "tags": [],
+      "createdAt": "2025-08-23T05:38:03.886Z"
+    },
+    {
+      "id": "meme-funny-2",
+      "title": "meme funny 2",
+      "price": null,
+      "imageUrl": "./assets/cards/!favorite/meme-funny-2.jpg",
+      "tags": [],
+      "createdAt": "2025-08-23T05:38:03.883Z"
+    },
+    {
+      "id": "meme-funny-1",
+      "title": "meme funny 1",
+      "price": null,
+      "imageUrl": "./assets/cards/!favorite/meme-funny-1.jpg",
+      "tags": [],
+      "createdAt": "2025-08-23T05:38:03.881Z"
     }
   ]
 }
