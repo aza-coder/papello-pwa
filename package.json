@@ -1,0 +1,20 @@
+{
+  "name": "papello-pwa",
+  "version": "1.0.0",
+  "description": "Progressive Web App for digital greeting cards",
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-catalog.mjs",
+    "test": "node scripts/generate-catalog.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "pwa",
+    "greeting-cards",
+    "progressive-web-app"
+  ],
+  "author": "Papello Team",
+  "license": "MIT"
+}

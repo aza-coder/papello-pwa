@@ -1,0 +1,87 @@
+name: Auto-generate Catalog
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'assets/cards/**'
+      - 'scripts/**'
+      - '.github/workflows/**'
+  workflow_dispatch: # Позволяет запускать вручную
+
+jobs:
+  generate-catalog:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Получаем полную историю для правильного определения изменений
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies (if needed)
+        run: |
+          if [ -f "package.json" ]; then
+            npm ci
+          fi
+      
+      - name: Generate catalog
+        run: |
+          node scripts/generate-catalog.mjs
+      
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "📝 Обнаружены изменения в каталоге"
+            git status --porcelain
+          else
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "✅ Изменений не обнаружено"
+          fi
+      
+      - name: Commit and push changes
+        if: steps.check-changes.outputs.has-changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Добавляем измененные файлы
+          git add data/products.json data/favorites.json sw.js
+          
+          # Коммитим изменения
+          git commit -m "chore(data): regenerate products & favorites [skip ci]"
+          
+          # Пушим изменения
+          git push origin main
+          
+          echo "🚀 Изменения закоммичены и отправлены в репозиторий"
+      
+      - name: Summary
+        run: |
+          echo "## 📊 Результат генерации каталога" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-changes.outputs.has-changes }}" == "true" ]; then
+            echo "✅ **Каталог обновлен**" >> $GITHUB_STEP_SUMMARY
+            echo "- `data/products.json` - обновлен" >> $GITHUB_STEP_SUMMARY
+            echo "- `data/favorites.json` - обновлен" >> $GITHUB_STEP_SUMMARY
+            echo "- `sw.js` - версия увеличена для инвалидации кэша" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🔄 **Service Worker** будет автоматически обновлен на GitHub Pages" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ **Изменений не обнаружено**" >> $GITHUB_STEP_SUMMARY
+            echo "- Каталог уже актуален" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Файлы каталога:**" >> $GITHUB_STEP_SUMMARY
+          echo "- `./data/products.json` - полный каталог продуктов" >> $GITHUB_STEP_SUMMARY
+          echo "- `./data/favorites.json` - до 10 фаворитов для слайдера" >> $GITHUB_STEP_SUMMARY

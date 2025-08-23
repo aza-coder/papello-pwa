@@ -825,7 +825,8 @@
     async function loadProducts() {
       try {
         const res = await fetch('./data/products.json');
-        const products = await res.json();
+        const data = await res.json();
+        const products = data.items || [];
 
         const container = document.getElementById('products');
         let firstImageEl = null;
@@ -836,7 +837,7 @@
           div.innerHTML = `
             <img src="${p.imageUrl}" alt="${p.title}">
             <div class="title">${p.title}</div>
-            <div class="price">$${p.price}</div>
+            <div class="price">${p.price ? `$${p.price}` : 'Free'}</div>
           `;
           const img = div.querySelector('img');
           if (!firstImageEl) firstImageEl = img;
@@ -1144,17 +1145,28 @@
 
     async function loadFavorites() {
       try {
-        const res = await fetch('./data/favorites.json');
-        const data = await res.json();
-        slidesData = (Array.isArray(data) ? data : (data?.items || [])).slice(0, MAX_SLIDES);
+        // Загружаем favorites.json (массив ID)
+        const favoritesRes = await fetch('./data/favorites.json');
+        const favoritesData = await favoritesRes.json();
+        const favoriteIds = favoritesData.items || [];
+        
+        // Загружаем products.json для получения полных данных
+        const productsRes = await fetch('./data/products.json');
+        const productsData = await productsRes.json();
+        const products = productsData.items || [];
+        
+        // Фильтруем продукты по ID из favorites
+        slidesData = products
+          .filter(product => favoriteIds.includes(product.id))
+          .slice(0, MAX_SLIDES);
+        
         viewport.innerHTML = '';
-        slidesData.forEach((raw) => {
-          const slide = createSlide(raw);
+        slidesData.forEach((product) => {
+          const slide = createSlide(product);
           viewport.appendChild(slide);
           const img = slide.querySelector('img');
           lazyObserve(img);
-          const normalized = normalizeItem(raw);
-          attachOverlayHandlers(slide, normalized);
+          attachOverlayHandlers(slide, product);
         });
         skeletonEl.style.display = 'none';
         setCurrentIndex(0, false);
@@ -1373,7 +1385,7 @@
       try {
         const res = await fetch('./data/products.json');
         const data = await res.json();
-        allProducts = Array.isArray(data) ? data : (data?.items || []);
+        allProducts = data.items || [];
         console.log('Loaded products for likes:', allProducts.length);
         return allProducts;
       } catch (e) {
@@ -1619,7 +1631,7 @@
       try {
         const res = await fetch('./data/products.json');
         const data = await res.json();
-        allCardsData = Array.isArray(data) ? data : (data?.items || []);
+        allCardsData = data.items || [];
         console.log('Loaded all products data:', allCardsData.length);
         return allCardsData;
       } catch (e) {
