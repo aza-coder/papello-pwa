@@ -36,30 +36,59 @@ async function getCacheKeys() {
   return await caches.keys();
 }
 
+async function trimCache(cache, maxEntries) {
+  const keys = await cache.keys();
+  if (keys.length <= maxEntries) return;
+  const entries = await Promise.all(
+    keys.map(async (key) => {
+      const response = await cache.match(key);
+      const date = response?.headers.get('date') || new Date().toISOString();
+      return { key, date };
+    })
+  );
+  entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const toDelete = entries.slice(0, entries.length - maxEntries);
+  for (const entry of toDelete) {
+    await cache.delete(entry.key);
+  }
+}
+
 // Стратегии кэширования
-async function networkFirst(request, cacheName) {
+async function networkFirstWithTimeout(request, cacheName, timeout = 4000) {
+  const cache = await openCache(cacheName);
   try {
-    // Пытаемся получить свежие данные
-    const response = await fetch(request);
-    if (response.ok) {
-      // Кэшируем успешный ответ
-      const cache = await openCache(cacheName);
+    const response = await Promise.race([
+      fetch(request),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
+    ]);
+    if (response && response.ok) {
       await cache.put(request, response.clone());
       return response;
     }
   } catch (error) {
-    console.log('Network failed, falling back to cache:', error);
+    console.log('Network failed or timeout, falling back to cache:', error);
   }
-  
-  // Возвращаем кэшированный ответ
-  const cache = await openCache(cacheName);
   const cachedResponse = await cache.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-  
-  // Если нет в кэше, возвращаем fallback
+  if (cachedResponse) return cachedResponse;
   return new Response('Offline content not available', { status: 503 });
+}
+
+async function cacheFirstWithUpdate(request, cacheName) {
+  const cache = await openCache(cacheName);
+  const cached = await cache.match(request);
+  const fetchPromise = fetch(request).then(async (response) => {
+    if (response.ok) {
+      await cache.put(request, response.clone());
+      await trimCache(cache, MAX_IMG_CACHE_ENTRIES);
+    }
+    return response;
+  }).catch(() => null);
+  if (cached) {
+    fetchPromise.catch(() => {});
+    return cached;
+  }
+  const response = await fetchPromise;
+  return response || new Response('Resource not available', { status: 503 });
 }
 
 async function staleWhileRevalidate(request, cacheName) {
@@ -73,26 +102,7 @@ async function staleWhileRevalidate(request, cacheName) {
     if (response.ok) {
       await cache.put(request, response.clone());
       
-      // Очищаем старые записи (LRU)
-      const keys = await cache.keys();
-      if (keys.length > MAX_IMG_CACHE_ENTRIES) {
-        // Получаем метаданные для сортировки по дате
-        const entries = await Promise.all(
-          keys.map(async (key) => {
-            const response = await cache.match(key);
-            const date = response.headers.get('date') || new Date().toISOString();
-            return { key, date };
-          })
-        );
-        
-        // Сортируем по дате и удаляем старые
-        entries.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const toDelete = entries.slice(0, entries.length - MAX_IMG_CACHE_ENTRIES);
-        
-        for (const entry of toDelete) {
-          await cache.delete(entry.key);
-        }
-      }
+      await trimCache(cache, MAX_IMG_CACHE_ENTRIES);
     }
   }).catch(error => {
     console.log('Background update failed:', error);
@@ -188,52 +198,58 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // HTML/навигация - network-first
-  if (request.mode === 'navigate' || 
+  // HTML/навигация - cache-first
+  if (request.mode === 'navigate' ||
       request.headers.get('accept')?.includes('text/html') ||
       url.pathname.endsWith('/') ||
       url.pathname.endsWith('/index.html')) {
-    
-    console.log('HTML request, using network-first:', url.pathname);
-    event.respondWith(networkFirst(request, STATIC_CACHE));
+
+    console.log('HTML request, using cache-first:', url.pathname);
+    event.respondWith(cacheFirstWithUpdate(request, STATIC_CACHE));
     return;
   }
-  
-  // JSON данные - network-first
-  if (url.pathname.startsWith('./data/') || 
+
+  // JSON данные - network-first с таймаутом
+  if (url.pathname.startsWith('./data/') ||
       url.pathname.includes('/data/') ||
       url.pathname.endsWith('.json')) {
-    
-    console.log('JSON request, using network-first:', url.pathname);
-    event.respondWith(networkFirst(request, DATA_CACHE));
+
+    console.log('JSON request, using network-first with timeout:', url.pathname);
+    event.respondWith(networkFirstWithTimeout(request, DATA_CACHE));
     return;
   }
-  
-  // Изображения - stale-while-revalidate
-  if (request.destination === 'image' || 
+
+  // Изображения
+  if (request.destination === 'image' ||
       url.pathname.includes('/assets/cards/') ||
       url.pathname.includes('/assets/icons/') ||
       url.pathname.includes('/assets/brand/')) {
-    
-    console.log('Image request, using stale-while-revalidate:', url.pathname);
-    event.respondWith(staleWhileRevalidate(request, IMG_CACHE));
+
+    const ref = request.referrer || '';
+    if (ref.includes('#/home') || ref.includes('#/likes')) {
+      console.log('Image request from Home/Likes, using cache-first:', url.pathname);
+      event.respondWith(cacheFirstWithUpdate(request, IMG_CACHE));
+    } else {
+      console.log('Image request from All, using stale-while-revalidate:', url.pathname);
+      event.respondWith(staleWhileRevalidate(request, IMG_CACHE));
+    }
     return;
   }
-  
+
   // Остальные статические ресурсы - network-first
   if (url.pathname.includes('/assets/') ||
       url.pathname.includes('/fonts/') ||
       url.pathname.includes('/css/') ||
       url.pathname.includes('/js/')) {
-    
-    console.log('Static resource, using network-first:', url.pathname);
-    event.respondWith(networkFirst(request, STATIC_CACHE));
+
+    console.log('Static resource, using network-first with timeout:', url.pathname);
+    event.respondWith(networkFirstWithTimeout(request, STATIC_CACHE));
     return;
   }
-  
+
   // Для всех остальных запросов - network-first
-  console.log('Other request, using network-first:', url.pathname);
-  event.respondWith(networkFirst(request, STATIC_CACHE));
+  console.log('Other request, using network-first with timeout:', url.pathname);
+  event.respondWith(networkFirstWithTimeout(request, STATIC_CACHE));
 });
 
 // Обработчик сообщений от клиентов
