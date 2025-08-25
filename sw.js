@@ -1,7 +1,7 @@
 // Service Worker для Papéllo PWA
-// Версия: v6
+// Версия: v7
 
-const SW_VERSION = 'v6';
+const SW_VERSION = 'v7';
 
 // Имена кэшей с версионированием
 const STATIC_CACHE = 'static-' + SW_VERSION;
