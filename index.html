@@ -82,7 +82,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      z-index: 10000;
       opacity: 1;
       transition: opacity 400ms ease;
     }
@@ -271,16 +271,17 @@
     /* Bottombar */
     .bottombar {
       position: fixed;
-      left: 0; right: 0; bottom: 0;
-      background: #cde7f0;
-      height: 72px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      background: #FFF;
+      display: flex;
       align-items: center;
-      justify-items: center;
-      z-index: 10000;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
+      justify-content: center;
+      gap: 30px;
+      padding: 8px 16px;
+      z-index: 9000;
+      border-radius: 20px;
     }
     .bottombar button {
       appearance: none;
@@ -541,7 +542,7 @@
       
       .bottombar {
         /* Safe area for iPhone X and newer */
-        padding-bottom: env(safe-area-inset-bottom);
+        padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
       }
     }
     
@@ -566,7 +567,7 @@
      .install-btn {
        background: transparent;
        color: #000;
-       border: 2px solid rgba(0,0,0,0.3);
+       border: none;
        border-radius: 25px;
        padding: 12px 20px;
        font-size: 14px;
@@ -582,7 +583,6 @@
 
     .install-btn:hover {
       background: rgba(0,0,0,0.05);
-      border-color: rgba(0,0,0,0.5);
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.2);
     }
@@ -740,7 +740,7 @@
          <img src="./assets/brand/logo-512.svg" alt="Papéllo" width="36" height="36" />
          <div class="brand-name">Papéllo</div>
        </div>
-       <button id="installAppBtn" class="install-btn" aria-label="Install app" style="display: none;">
+       <button id="installAppBtn" class="install-btn" aria-label="Install app">
          <img src="./assets/icons/download.svg" alt="" aria-hidden="true" />
          <span>Install app</span>
        </button>
