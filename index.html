@@ -956,9 +956,21 @@
       const { img, priority } = job;
       const url = img.dataset?.src || img.src;
       img.fetchPriority = priority;
-      img.onload = img.onerror = () => {
+      img.onload = () => {
         activeImageLoads--;
-        imageCache.set(url, true);
+        imageCache.set(url, true);   // помечаем только успешные загрузки
+        processImageQueue();
+      };
+      img.onerror = () => {
+        activeImageLoads--;
+        imageCache.delete(url);      // не кешируем ошибку
+        // повторная попытка загрузки
+        const retries = Number(img.dataset.retry || 0);
+        if (retries < 1) {
+          img.dataset.retry = String(retries + 1);
+          img.src = '';
+          setTimeout(() => loadImage(img, priority), 500);
+        }
         processImageQueue();
       };
       img.src = url;
