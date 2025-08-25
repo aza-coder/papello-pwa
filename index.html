@@ -864,46 +864,7 @@
       <img src="./assets/icons/grid.svg" alt="" aria-hidden="true" />
     </button>
   </nav>
-
-  <!-- legacy grid kept for future 'all' implementation; hidden by routing for now -->
-  <h1 style="display:none">Papéllo</h1>
-  <div class="grid" id="products" style="display:none"></div>
-
   <script>
-    async function loadProducts() {
-      try {
-        const res = await fetch('./data/products.json');
-        const data = await res.json();
-        const products = data.items || [];
-
-        const container = document.getElementById('products');
-        let firstImageEl = null;
-
-        products.forEach(p => {
-          const div = document.createElement('div');
-          div.className = 'card';
-          div.innerHTML = `
-            <img src="${p.imageUrl}" alt="${p.title}">
-            <div class="title">${p.title}</div>
-            <div class="price">${p.price ? `$${p.price}` : 'Free'}</div>
-          `;
-          const img = div.querySelector('img');
-          if (!firstImageEl) firstImageEl = img;
-          container.appendChild(div);
-        });
-
-        // Дождаться первой картинки (или ошибки), чтобы показать первый контент
-        await new Promise((resolve) => {
-          if (!firstImageEl) { resolve(); return; }
-          if (firstImageEl.complete) { resolve(); return; }
-          firstImageEl.addEventListener('load', resolve, { once: true });
-          firstImageEl.addEventListener('error', resolve, { once: true });
-        });
-      } catch (e) {
-        console.error('Ошибка загрузки товаров', e);
-      }
-    }
-
     function hidePreloader() {
       const overlay = document.getElementById('preloader');
       if (!overlay) return;
@@ -933,13 +894,15 @@
     const PRELOADER_TIMEOUT_MS = 8000;
     const PRELOADER_MIN_MS = 3000;
 
-    const contentReady = loadProducts();
+    const homeReady = new Promise(resolve =>
+      window.addEventListener('papello:home-ready', resolve, { once: true })
+    );
     const minDelay = new Promise(resolve => setTimeout(resolve, PRELOADER_MIN_MS));
     const fallbackMax = new Promise(resolve => setTimeout(resolve, PRELOADER_TIMEOUT_MS));
 
     Promise.race([
       fallbackMax,
-      Promise.all([contentReady, minDelay])
+      Promise.all([homeReady, minDelay])
     ]).then(hidePreloader);
   </script>
   <script>
@@ -1271,10 +1234,15 @@
           if (idx === 0) {
             img.loading = 'eager';
             loadImage(img, 'high');
-            if (!img.complete) {
-              img.addEventListener('load', () => { skeletonEl.style.display = 'none'; }, { once: true });
-            } else {
+            const onFirstLoad = () => {
               skeletonEl.style.display = 'none';
+              window.dispatchEvent(new Event('papello:home-ready'));
+            };
+            if (!img.complete) {
+              img.addEventListener('load', onFirstLoad, { once: true });
+              img.addEventListener('error', onFirstLoad, { once: true });
+            } else {
+              onFirstLoad();
             }
           } else {
             lazyObserve(img);
