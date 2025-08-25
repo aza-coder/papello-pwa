@@ -18,6 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sour+Gummy&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code&display=swap" rel="stylesheet">
   
   <!-- Platform-specific icons -->
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/logo-32.png" />
@@ -145,18 +146,18 @@
     .carousel[aria-roledescription="carousel"] { outline: none; }
     .carousel-viewport {
       overflow-x: auto;
-      overflow-y: hidden;
+      overflow-y: visible;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-x: contain;
       scroll-snap-type: x mandatory;
       display: flex;
       gap: 10px;
-      padding-bottom: 10px; /* space for shadow */
+      padding: 10px; /* space for shadow */
     }
     .carousel-viewport::-webkit-scrollbar { display: none; }
     .carousel-slide {
       scroll-snap-align: center;
-      flex: 0 0 calc(100vw - 20px); /* по ширине экрана с учётом паддинга body */
+      flex: 0 0 100%;
       display: flex;
       justify-content: center;
     }
@@ -235,10 +236,11 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: calc((100vw - 20px) * 3 / 2);
+      width: 100%;
+      aspect-ratio: 2 / 3;
     }
     .skeleton-card {
-      width: calc(100vw - 20px);
+      width: 100%;
       aspect-ratio: 2 / 3;
       border-radius: 5px;
       background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.2), rgba(255,255,255,0.12));
@@ -562,9 +564,9 @@
     
          /* Install App Button */
      .install-btn {
-       background: #2A3D66;
-       color: white;
-       border: 2px solid rgba(255,255,255,0.3);
+       background: transparent;
+       color: #000;
+       border: 2px solid rgba(0,0,0,0.3);
        border-radius: 25px;
        padding: 12px 20px;
        font-size: 14px;
@@ -575,23 +577,24 @@
        gap: 8px;
        transition: all 0.2s ease;
        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+       font-family: 'Google Sans Code', sans-serif;
      }
-    
+
     .install-btn:hover {
-      background: #1a2a4a;
-      border-color: rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.05);
+      border-color: rgba(0,0,0,0.5);
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.2);
     }
-    
+
     .install-btn:active {
       transform: translateY(0);
     }
-    
+
     .install-btn img {
       width: 18px;
       height: 18px;
-      filter: brightness(0) invert(1);
+      filter: none;
     }
     
     /* iOS Install Hint Modal */
@@ -717,7 +720,7 @@
       }
       
       .carousel-slide {
-        flex: 0 0 calc(100vw - 16px);
+        flex: 0 0 100%;
       }
       
       .install-btn {
